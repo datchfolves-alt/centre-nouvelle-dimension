@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saisie des notes - Centre Nouvelle Dimension</title>
+<style>
+:root { --vert:#008751; --vert-fonce:#006b40; --fond:#f4f9f6; --texte:#333; --carte:#fff; --bord:#ddd; --calc:#f0f8f4; --err:#c0392b; }
+@media (prefers-color-scheme: dark) {
+  :root { --fond:#12201a; --texte:#e8efe9; --carte:#1b2b24; --bord:#34493f; --calc:#223a2f; --err:#ff8a7a; }
+}
+* { box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background:var(--fond); color:var(--texte); margin:0; padding:16px; }
+.container { max-width:900px; margin:0 auto; background:var(--carte); padding:22px; border-radius:8px; border-top:4px solid var(--vert); }
+h1 { color:var(--vert); font-size:1.3rem; margin:0; text-align:center; }
+.sous-titre { text-align:center; font-weight:bold; opacity:.7; margin:6px 0 20px; font-size:.9rem; }
+.filtres { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding:14px; border:1px solid var(--bord); border-radius:6px; }
+.filtres div { flex:1 1 200px; }
+label { display:block; font-weight:bold; font-size:.85rem; margin-bottom:5px; }
+select, input[type=number] { font-size:1rem; padding:8px; border:1px solid var(--bord); border-radius:4px; background:var(--carte); color:var(--texte); }
+select { width:100%; }
+.tableau { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; margin-bottom:16px; min-width:480px; }
+th, td { border:1px solid var(--bord); padding:8px; text-align:left; }
+th { background:var(--vert); color:#fff; font-size:.9rem; }
+td.num, th.num { text-align:center; }
+input[type=number] { width:80px; text-align:center; }
+input.invalide { border-color:var(--err); outline:2px solid var(--err); }
+input.total { background:var(--calc); font-weight:bold; }
+.eleve { display:flex; align-items:center; gap:10px; }
+.photo { width:30px; height:35px; background:var(--bord); border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:.6rem; flex:none; }
+.ajout { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.ajout input[type=text] { flex:1 1 200px; font-size:1rem; padding:8px; border:1px solid var(--bord); border-radius:4px; background:var(--carte); color:var(--texte); }
+.ajout button, .suppr { background:none; border:1px solid var(--vert); color:var(--vert); border-radius:4px; padding:8px 12px; cursor:pointer; font-size:.9rem; }
+.suppr { border-color:var(--err); color:var(--err); padding:4px 8px; }
+.btn-save { background:var(--vert); color:#fff; border:none; padding:14px; font-size:1.05rem; font-weight:bold; border-radius:4px; cursor:pointer; width:100%; }
+.btn-save:hover { background:var(--vert-fonce); }
+#message { margin-top:12px; text-align:center; font-weight:bold; min-height:1.2em; }
+.ok { color:var(--vert); } .ko { color:var(--err); }
+.cache { display:none !important; }
+#formConnexion input { width:100%; font-size:1rem; padding:10px; margin-bottom:12px; border:1px solid var(--bord); border-radius:4px; background:var(--carte); color:var(--texte); }
+.quitter { background:none; border:1px solid var(--bord); color:var(--texte); border-radius:4px; padding:6px 10px; cursor:pointer; margin-left:8px; }
+.barre { text-align:center; margin:0 0 16px; font-size:.9rem; }
+.go { background:var(--vert); color:#fff; border:none; border-radius:4px; padding:10px 14px; cursor:pointer; font-size:.95rem; }
+.titreMenu { font-size:1rem; margin:24px 0 8px; color:var(--vert); }
+.rub { border:1px solid var(--bord); border-radius:6px; margin-bottom:8px; padding:0 12px; }
+.rub summary { cursor:pointer; font-weight:bold; padding:12px 0; }
+.sr { display:block; width:100%; text-align:left; background:none; border:none; border-top:1px solid var(--bord); color:var(--texte); padding:12px 4px; font-size:.95rem; cursor:pointer; }
+#infoMenu { text-align:center; font-weight:bold; color:var(--vert); min-height:1.2em; }
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:16px; }
+.carte { border:1px solid var(--bord); border-radius:6px; padding:12px; text-align:center; font-size:.9rem; }
+.carte b { display:block; font-size:1.25rem; color:var(--vert); margin-top:4px; }
+.rapide { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px; margin-bottom:16px; }
+.pf label { display:block; margin-bottom:10px; font-weight:bold; }
+.pf input, .pf select, .pf textarea { width:100%; font-size:1rem; padding:8px; margin-top:4px; border:1px solid var(--bord); border-radius:4px; background:var(--carte); color:var(--texte); font-family:inherit; }
+.pf .ligne { font-weight:normal; }
+.pf input[type=checkbox] { width:auto; margin-right:8px; }
+.res { font-weight:bold; color:var(--vert); }
+.pub { border-top:1px solid var(--bord); padding:8px 0; white-space:pre-wrap; }
+.bloc { border:1px solid var(--bord); border-radius:8px; padding:14px; margin-bottom:18px; }
+.bloc h3 { margin-top:0; color:var(--vert); }
+.aide2 { font-size:.85rem; opacity:.85; }
+.aide2 code { word-break:break-all; }
+.idph { width:30px; height:36px; object-fit:cover; border-radius:3px; display:block; }
+.chips { display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:10px; }
+.chip { flex:none; border:1px solid var(--vert); background:none; color:var(--vert); border-radius:16px; padding:8px 12px; cursor:pointer; font-size:.85rem; }
+.chip[aria-selected=true] { background:var(--vert); color:#fff; }
+#bilan table { min-width:900px; }
+.bulletin { border:1px solid var(--bord); border-radius:8px; padding:16px; margin-bottom:24px; background:var(--carte); font-size:.9rem; }
+.bulletin table { min-width:0; font-size:.85rem; }
+.bul-tete { display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:flex-start; border-bottom:3px solid var(--vert); padding-bottom:12px; margin-bottom:14px; }
+.bul-tete > div { flex:1 1 150px; }
+.bul-droite { text-align:right; }
+.bul-titre { text-align:center; border:2px solid var(--vert); border-radius:8px; padding:8px; color:var(--vert); }
+.bul-eleve { display:flex; gap:12px; border:1px solid var(--bord); border-radius:8px; padding:10px; margin-bottom:14px; align-items:center; }
+.bul-photo { width:72px; height:84px; object-fit:cover; border-radius:6px; background:var(--bord); flex:none; display:flex; align-items:center; justify-content:center; font-size:.7rem; }
+.bul-infos { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px 16px; flex:1; }
+.bul-infos small { display:block; opacity:.7; text-transform:uppercase; font-size:.65rem; }
+.bul-syn { display:grid; grid-template-columns:1fr 1fr; gap:12px; border:1px solid var(--bord); border-radius:8px; padding:12px; margin-top:14px; }
+.bul-syn .big { font-size:1.5rem; color:var(--vert); }
+.bul-appr { border:1px solid var(--bord); border-radius:8px; padding:12px; margin-top:14px; }
+.nb { font-weight:bold; color:var(--vert); }
+.nb.bas { color:var(--err); }
+@media print {
+  body { background:#fff; color:#000; padding:0; }
+  .noprint, #connexion, #appli, #tableau { display:none !important; }
+  .container { box-shadow:none; border:0; max-width:none; padding:0; background:#fff; }
+  .bulletin { page-break-after:always; break-inside:avoid; border:0; background:#fff; }
+  .bulletin.acces { page-break-after:auto; border:1px dashed #888; margin-bottom:12px; }
+  :root { --carte:#fff; --texte:#000; --bord:#bbb; --fond:#fff; --err:#c0392b; }
+}
+.tpoint { min-width:560px; }
+.tpoint input, .tpoint select { width:100%; min-width:90px; font-size:.9rem; padding:6px; border:1px solid var(--bord); border-radius:4px; background:var(--carte); color:var(--texte); }
+.aide { font-size:.8rem; opacity:.7; text-align:center; }
+:focus-visible { outline:3px solid var(--vert); outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="container" id="connexion" style="max-width:420px">
+  <h1>CENTRE NOUVELLE DIMENSION</h1>
+  <p class="sous-titre">Connexion</p>
+  <form id="formConnexion">
+    <label for="ident">Identifiant</label>
+    <input type="text" id="ident" autocomplete="username" autocapitalize="none" required>
+    <label for="mdp">Mot de passe</label>
+    <input type="password" id="mdp" autocomplete="current-password" required>
+    <button type="submit" class="btn-save">Se connecter</button>
+  </form>
+  <p id="erreurConn" class="ko" role="alert" style="text-align:center;font-weight:bold"></p>
+  <p class="aide">Comptes de test : directeur / dir123, promoteur / promo123, secretaire / secr123, prof-cp / prof123, parent-agossou / parent123</p>
+</div>
+
+<div class="container cache" id="appli">
+  <h1>CENTRE NOUVELLE DIMENSION</h1>
+  <p class="sous-titre">Saisie manuelle des notes</p>
+  <p class="barre">Connecté : <strong id="qui"></strong><button type="button" class="quitter" id="btnQuitter">Se déconnecter</button></p>
+  <p class="barre"><button type="button" class="go" id="btnRetour">← Tableau de bord</button></p>
+
+  <div class="filtres">
+    <div><label for="classe">Classe</label>
+      <select id="classe"><option value="ci">CI</option><option value="cp">CP</option><option value="ce1">CE1</option><option value="ce2">CE2</option><option value="cm1">CM1</option><option value="cm2">CM2</option></select></div>
+    <div><label for="evaluation">Évaluation</label>
+      <select id="evaluation"><option value="1">Évaluation sommative 1</option><option value="2">Évaluation sommative 2</option><option value="3">Évaluation sommative 3</option><option value="4">Évaluation sommative 4</option><option value="5">Évaluation sommative 5</option></select></div>
+    <div class="cache"><label for="matiere">Discipline</label>
+      <select id="matiere">
+        <option value="dic">Dictée</option><option value="exp">Expression écrite</option><option value="lect">Lecture</option>
+        <option value="math">Mathématiques</option><option value="es">ES</option><option value="est">EST</option>
+        <option value="ea_dessin">EA / Dessin / Couture</option><option value="ea_poesie">EA / Poésie / Chant / Conte</option><option value="eps">EPS</option>
+      </select></div>
+  </div>
+
+  <div id="chips" class="chips" role="tablist" aria-label="Disciplines"></div>
+  <p id="compteur" class="aide2"></p>
+  <div class="ajout" id="zoneAjout">
+    <input type="text" id="nouvelEleve" placeholder="Nom et prénoms du nouvel élève" aria-label="Nom du nouvel élève">
+    <button type="button" id="btnAjout">Ajouter l'élève</button>
+  </div>
+
+  <div id="bilan" class="cache"></div>
+    <form id="form">
+    <div class="tableau">
+      <table>
+        <thead><tr>
+          <th>Élève</th><th class="num" title="Critères minimaux">CM /18</th><th class="num" title="Critère de perfectionnement">CP /2</th><th class="num">Note /20</th><th></th>
+        </tr></thead>
+        <tbody id="corps"></tbody>
+      </table>
+    </div>
+    <button type="submit" class="btn-save" id="btnEnreg">Enregistrer les notes</button>
+  </form>
+  <p id="message" role="status"></p>
+</div>
+
+<div class="container cache" id="tableau">
+  <h1>CENTRE NOUVELLE DIMENSION</h1>
+  <p class="sous-titre" id="titreTab"></p>
+  <p class="barre">Connecté : <strong id="qui2"></strong><button type="button" class="quitter" id="btnQuitter2">Se déconnecter</button></p>
+  <div id="contenuTab"></div>
+</div>
+
+<div class="container cache" id="vue">
+  <h1 class="noprint">CENTRE NOUVELLE DIMENSION</h1>
+  <p class="sous-titre noprint" id="titreVue"></p>
+  <p class="barre noprint"><button type="button" class="go" id="btnRetour2">← Tableau de bord</button></p>
+  <div id="contenuVue"></div>
+</div>
+
+<script>
+// Élèves par défaut (modifiables via le champ « Ajouter l'élève »)
+var ELEVES_DEFAUT = {
+  cp:  ["AGOSSOU Codjo Marc", "DOSSOU Akouvi Sara"],
+  ci: [], ce1: [], ce2: [], cm1: [], cm2: []
+};
+var NOTE_MAX = 20;
+
+var $ = function (id) { return document.getElementById(id); };
+var corps = $("corps"), msg = $("message");
+
+function lire(cle, defaut) {
+  try { var v = localStorage.getItem(cle); return v ? JSON.parse(v) : defaut; }
+  catch (e) { return defaut; }
+}
+function ecrire(cle, val) {
+  try { localStorage.setItem(cle, JSON.stringify(val)); return true; }
+  catch (e) { return false; }
+}
+function cleNotes() { return "notes:" + $("classe").value + ":" + $("evaluation").value + ":" + $("matiere").value; }
+function cleEleves() { return "eleves:" + $("classe").value; }
+
+function afficher(texte, ok) { msg.textContent = texte; msg.className = ok ? "ok" : "ko"; }
+
+function calculer(tr) {
+  var cm = tr.querySelector(".cm"), cp = tr.querySelector(".cp"), total = tr.querySelector(".total");
+  var a = parseFloat(cm.value), b = parseFloat(cp.value);
+  var invalide = false;
+  [cm, cp].forEach(function (inp) {
+    var v = parseFloat(inp.value);
+    var mauvais = inp.value !== "" && (isNaN(v) || v < 0 || v > parseFloat(inp.max));
+    inp.classList.toggle("invalide", mauvais);
+    if (mauvais) invalide = true;
+  });
+  var somme = (isNaN(a) ? 0 : a) + (isNaN(b) ? 0 : b);
+  if (somme > NOTE_MAX) { invalide = true; total.classList.add("invalide"); } else { total.classList.remove("invalide"); }
+  total.value = (cm.value === "" && cp.value === "") ? "" : somme.toFixed(2);
+  return !invalide;
+}
+
+var BILAN = false;
+
+function chip(t, sel, fn) {
+  var b = document.createElement("button");
+  b.type = "button"; b.className = "chip"; b.setAttribute("role", "tab");
+  b.setAttribute("aria-selected", sel ? "true" : "false");
+  b.textContent = t; b.addEventListener("click", fn);
+  return b;
+}
+
+function dessinerChips() {
+  var c = $("chips"), cur = $("matiere").value, sl = c.scrollLeft;
+  c.innerHTML = "";
+  Array.prototype.forEach.call($("matiere").options, function (o) {
+    c.appendChild(chip(o.textContent, !BILAN && o.value === cur, function () { BILAN = false; $("matiere").value = o.value; afficher("", true); dessiner(); }));
+  });
+  c.appendChild(chip("Bilan", BILAN, function () { BILAN = true; afficher("", true); dessiner(); }));
+  c.scrollLeft = sl;
+}
+
+function majCompteur() {
+  var cl = $("classe").value, el = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []), n = lire(cleNotes(), {});
+  var k = el.filter(function (e) { return n[e] && n[e].total !== "" && n[e].total !== undefined; }).length;
+  $("compteur").textContent = "Liste complète de la classe : " + el.length + " élève(s). Notes enregistrées en " + $("matiere").options[$("matiere").selectedIndex].textContent + " : " + k + " sur " + el.length + ".";
+}
+
+function dessinerBilan() {
+  var cl = $("classe").value, ev = $("evaluation").value, el = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []);
+  var mats = Array.prototype.slice.call($("matiere").options), tn = {}, h;
+  mats.forEach(function (o) { tn[o.value] = lire("notes:" + cl + ":" + ev + ":" + o.value, {}); });
+  $("compteur").textContent = "Bilan de la classe : " + el.length + " élève(s), notes /20 de chaque discipline.";
+  if (!el.length) { $("bilan").innerHTML = "<p>Aucun élève dans cette classe.</p>"; return; }
+  h = '<div class="tableau"><table><thead><tr><th>Élève</th>' + mats.map(function (o) { return '<th class="num">' + esc(o.textContent) + "</th>"; }).join("") + '<th class="num">Moyenne</th></tr></thead><tbody>';
+  el.forEach(function (n) {
+    var t = 0, k = 0, cases = mats.map(function (o) {
+      var d = tn[o.value][n];
+      if (d && d.total !== "" && d.total !== undefined) { t += parseFloat(d.total); k++; return d.total; }
+      return "–";
+    });
+    h += "<tr><td>" + esc(n) + "</td>" + cases.map(function (v) { return '<td class="num">' + v + "</td>"; }).join("") + '<td class="num"><strong>' + (k ? (t / k).toFixed(2) : "–") + "</strong></td></tr>";
+  });
+  $("bilan").innerHTML = h + "</tbody></table></div>";
+}
+
+function dessiner() {
+  dessinerChips();
+  $("form").classList.toggle("cache", BILAN);
+  $("bilan").classList.toggle("cache", !BILAN);
+  if (BILAN) dessinerBilan(); else { dessinerSaisie(); majCompteur(); }
+}
+
+function dessinerSaisie() {
+  var eleves = lire(cleEleves(), ELEVES_DEFAUT[$("classe").value] || []);
+  var notes = lire(cleNotes(), {});
+  if (user && user.role === "parent") eleves = eleves.filter(function (n) { return n === user.enfant; });
+  corps.innerHTML = "";
+  if (!eleves.length) {
+    corps.innerHTML = '<tr><td colspan="5">Aucun élève dans cette classe. Ajoutez-en un ci-dessus.</td></tr>';
+    return;
+  }
+  eleves.forEach(function (nom, i) {
+    var n = notes[nom] || {};
+    var tr = document.createElement("tr");
+    tr.dataset.nom = nom;
+    tr.innerHTML =
+      '<td><div class="eleve"><div class="photo">Photo</div><span></span></div></td>' +
+      '<td class="num"><input type="number" class="cm" step="0.5" min="0" max="18" inputmode="decimal" aria-label="Critères minimaux"></td>' +
+      '<td class="num"><input type="number" class="cp" step="0.5" min="0" max="2" inputmode="decimal" aria-label="Critère de perfectionnement"></td>' +
+      '<td class="num"><input type="number" class="total" readonly tabindex="-1"></td>' +
+      '<td class="num"><button type="button" class="suppr" aria-label="Retirer l\'élève">✕</button></td>';
+    tr.querySelector("span").textContent = nom;
+    tr.querySelector(".cm").value = n.cm !== undefined ? n.cm : "";
+    tr.querySelector(".cp").value = n.cp !== undefined ? n.cp : "";
+    deuxClics(tr.querySelector(".suppr"), function () { retirer(i); });
+    if (user && user.role === "parent") {
+      tr.querySelector(".cm").readOnly = true;
+      tr.querySelector(".cp").readOnly = true;
+      tr.querySelector(".suppr").remove();
+    }
+    tr.addEventListener("input", function () { calculer(tr); afficher("", true); });
+    corps.appendChild(tr);
+    calculer(tr);
+  });
+}
+
+function retirer(i) {
+  var eleves = lire(cleEleves(), ELEVES_DEFAUT[$("classe").value] || []);
+  eleves.splice(i, 1);
+  ecrire(cleEleves(), eleves);
+  dessiner();
+}
+
+$("btnAjout").addEventListener("click", function () {
+  var champ = $("nouvelEleve"), nom = champ.value.trim();
+  if (!nom) { afficher("Saisissez le nom de l'élève.", false); return; }
+  var eleves = lire(cleEleves(), ELEVES_DEFAUT[$("classe").value] || []);
+  if (eleves.indexOf(nom) !== -1) { afficher("Cet élève est déjà dans la liste.", false); return; }
+  eleves.push(nom);
+  ecrire(cleEleves(), eleves);
+  champ.value = "";
+  afficher("", true);
+  dessiner();
+});
+
+$("form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  if (user && user.role === "parent") return;
+  var lignes = corps.querySelectorAll("tr[data-nom]"), notes = {}, tout = true;
+  lignes.forEach(function (tr) {
+    if (!calculer(tr)) tout = false;
+    notes[tr.dataset.nom] = {
+      cm: tr.querySelector(".cm").value, cp: tr.querySelector(".cp").value, total: tr.querySelector(".total").value
+    };
+  });
+  if (!tout) { afficher("Corrigez les notes en rouge (CM de 0 à 18, CP de 0 à 2).", false); return; }
+  if (ecrire(cleNotes(), notes)) { afficher("Notes enregistrées sur cet appareil.", true); majCompteur(); }
+  else afficher("Enregistrement impossible : le stockage du navigateur est bloqué.", false);
+});
+
+["classe", "evaluation", "matiere"].forEach(function (id) { $(id).addEventListener("change", function () { afficher("", true); dessiner(); }); });
+// Comptes de TEST uniquement : visibles dans le code, donc non sécurisés
+var COMPTES = [
+  { id: "directeur", mdp: "dir123", role: "directeur", nom: "Directeur" },
+  { id: "promoteur", mdp: "promo123", role: "directeur", etiquette: "promoteur", nom: "Promoteur de l'école" },
+  { id: "secretaire", mdp: "secr123", role: "secretaire", nom: "Secrétaire" },
+  { id: "prof-cp", mdp: "prof123", role: "enseignant", nom: "Enseignant CP", classe: "cp" },
+  { id: "parent-agossou", mdp: "parent123", role: "parent", nom: "Parent de AGOSSOU Codjo Marc", classe: "cp", enfant: "AGOSSOU Codjo Marc" }
+];
+var user = null;
+var CLASSES = { ci: "CI", cp: "CP", ce1: "CE1", ce2: "CE2", cm1: "CM1", cm2: "CM2" };
+
+function montrer(nom) {
+  $("appli").classList.toggle("cache", nom !== "appli");
+  $("tableau").classList.toggle("cache", nom !== "tableau");
+  $("vue").classList.toggle("cache", nom !== "vue");
+  if (nom === "tableau") ouvrirTableau();
+}
+
+function effectif(cl) { return lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []).length; }
+
+function allerSaisie(cl) {
+  if (cl) $("classe").value = cl;
+  afficher("", true);
+  dessiner();
+  montrer("appli");
+}
+
+var FRAIS = 60000; // frais de scolarité annuels par élève (à ajuster)
+function comptesBrut() {
+  var ov = lire("mdpPerso", {}), cls = {};
+  tousEleves().forEach(function (e) { cls[e.nom] = e.cl; });
+  var ex = lire("accesExtra", {}), extras = lire("agentsExtra", []).filter(function (x) { return ex[x.id]; }).map(function (x) { return { id: ex[x.id].id, mdp: ex[x.id].mdp, role: "agent", nom: x.nom, extraId: x.id }; });
+  return COMPTES.concat(lire("comptesPlus", []), lire("comptesParents", []), extras).map(function (c) {
+    var x = Object.assign({}, c);
+    if (ov[c.id]) x.mdp = ov[c.id];
+    if (x.role === "parent" && x.enfant && cls[x.enfant]) x.classe = cls[x.enfant];
+    return x;
+  }).filter(function (x) { return x.role !== "parent" || cls[x.enfant]; });
+}
+function tousComptes() { var d = lire("dossiers", {}); return comptesBrut().filter(function (c) { var k = c.extraId || c.id; return !(d[k] && d[k].archive); }); }
+function deuxClics(b, fn) {
+  var t0 = b.textContent;
+  b.addEventListener("click", function () {
+    if (b.dataset.arme) { fn(); return; }
+    b.dataset.arme = "1"; b.textContent = "Confirmer ?";
+    setTimeout(function () { delete b.dataset.arme; b.textContent = t0; }, 4000);
+  });
+}
+function fcfa(n) { return n.toLocaleString("fr-FR") + " FCFA"; }
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); }
+function carte(t, v) { return '<div class="carte">' + t + "<b>" + v + "</b></div>"; }
+function champ(t, h) { return "<label>" + t + h + "</label>"; }
+function tousEleves() {
+  var r = [];
+  Object.keys(CLASSES).forEach(function (cl) {
+    lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []).forEach(function (n) { r.push({ nom: n, cl: cl }); });
+  });
+  return r;
+}
+function paye(nom) {
+  return lire("paiements", []).filter(function (p) { return p.eleve === nom; }).reduce(function (s, p) { return s + p.montant; }, 0);
+}
+function optClasses() { return Object.keys(CLASSES).map(function (cl) { return '<option value="' + cl + '">' + CLASSES[cl] + "</option>"; }).join(""); }
+function optEleves() { return tousEleves().map(function (e) { return '<option value="' + esc(e.nom) + '">' + esc(e.nom) + " (" + CLASSES[e.cl] + ")</option>"; }).join(""); }
+
+function statsHtml() {
+  var n = tousEleves().length, enc = lire("paiements", []).reduce(function (s, p) { return s + p.montant; }, 0);
+  var reste = resteEcole(), h = "";
+  if (user.role === "directeur") {
+    var ens = tousComptes().filter(function (c) { return c.role === "enseignant"; }).length;
+    h += carte("Élèves inscrits", n) + carte("Enseignants", ens);
+  }
+  return '<div class="stats">' + h + carte("Paiements reçus", fcfa(enc)) + carte("Reste à encaisser", fcfa(reste)) + "</div>";
+}
+
+var FORMS = {
+  eleve: { titre: "Inscrire un élève", bouton: "Inscrire",
+    champs: function () { return champ("Nom et prénoms", '<input id="f1" required>') + champ("Classe", '<select id="f2">' + optClasses() + "</select>"); },
+    ok: function () {
+      var nom = $("f1").value.trim(), cl = $("f2").value, l = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []);
+      if (!nom) return "Saisissez le nom de l'élève.";
+      if (l.indexOf(nom) !== -1) return "Cet élève existe déjà dans cette classe.";
+      l.push(nom); ecrire("eleves:" + cl, l);
+      return nom + " est inscrit en " + CLASSES[cl] + ".";
+    } },
+  perso: { titre: "Ajouter un membre du personnel", bouton: "Créer le compte",
+    champs: function () {
+      return champ("Nom et prénoms", '<input id="f1" required>') +
+        champ("Fonction", '<select id="f2"><option value="enseignant">Enseignant</option><option value="secretaire">Secrétaire</option></select>') +
+        champ("Classe (enseignant)", '<select id="f3">' + optClasses() + "</select>");
+    },
+    ok: function () {
+      var nom = $("f1").value.trim(), role = $("f2").value, cl = $("f3").value;
+      if (!nom) return "Saisissez le nom du membre du personnel.";
+      var id = nom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") + Math.floor(10 + Math.random() * 90);
+      var mdp = String(Math.floor(100000 + Math.random() * 900000)), l = lire("comptesPlus", []);
+      l.push({ id: id, mdp: mdp, role: role, nom: nom, classe: role === "enseignant" ? cl : undefined });
+      ecrire("comptesPlus", l);
+      return "Compte créé. Identifiant : " + id + " / Mot de passe : " + mdp + ". Notez-les maintenant.";
+    } },
+  paiement: { titre: "Encaisser un paiement", bouton: "Enregistrer le paiement",
+    champs: function () {
+      return champ("Élève", '<select id="f1" required>' + optEleves() + "</select>") +
+        champ("Rubrique", '<select id="f3">' + RUBRIQUES.map(function (x) { return '<option value="' + x[0] + '">' + x[1] + "</option>"; }).join("") + "</select>") +
+        '<p class="aide2" id="f4"></p>' + champ("Montant (FCFA)", '<input id="f2" type="number" min="1" step="1" required>');
+    },
+    init: function () {
+      function maj() {
+        var nom = $("f1").value, r = $("f3").value, e = tousEleves().filter(function (x) { return x.nom === nom; })[0], t = tarifs();
+        if (!e) { $("f4").textContent = ""; return; }
+        var b = bilanEleve(nom, e.cl, ficheEleve(nom), lire("paiements", [])), fixes = { lacoste: t.lacoste, sport: t.sport, fete: t.fete, td: t.td };
+        var reste = b.due[r] !== undefined ? Math.max(0, b.due[r] - (b.paid[r] || 0)) : null;
+        $("f4").textContent = reste !== null ? "Reste à payer pour cette rubrique : " + fcfa(reste) + (r === "scolarite" ? " (" + b.tr + ")" : "") + "." : "";
+        $("f2").value = r === "scolarite" ? (b.sug || "") : reste !== null ? (reste || "") : (fixes[r] || "");
+      }
+      $("f1").addEventListener("change", maj);
+      $("f3").addEventListener("change", maj);
+    },
+    ok: function () {
+      var el = $("f1").value, r = $("f3").value, m = parseFloat($("f2").value);
+      if (!el) return "Choisissez un élève.";
+      if (!(m > 0)) return "Saisissez un montant valide.";
+      var e = tousEleves().filter(function (x) { return x.nom === el; })[0], b = bilanEleve(el, e.cl, ficheEleve(el), lire("paiements", []));
+      if (b.due[r] !== undefined) {
+        var rest = Math.max(0, b.due[r] - (b.paid[r] || 0));
+        if (m > rest) return "Le montant dépasse le reste à payer pour cette rubrique (" + fcfa(rest) + ").";
+      }
+      var l = lire("paiements", []);
+      l.push({ eleve: el, montant: m, date: new Date().toISOString().slice(0, 10), rubrique: r });
+      ecrire("paiements", l);
+      return "Paiement enregistré. Reste dû pour cet élève : " + fcfa(bilanEleve(el, e.cl, ficheEleve(el), l).reste) + ".";
+    } },
+  comm: { titre: "Rédiger une communication ou un document", bouton: "Publier",
+    champs: function () {
+      return champ("Type", '<select id="f1"><option>Communication</option><option>Certificat</option><option>Document officiel</option></select>') +
+        champ("Titre", '<input id="f2" required>') + champ("Texte", '<textarea id="f3" rows="5" required></textarea>');
+    },
+    ok: function () {
+      var t = $("f2").value.trim(), x = $("f3").value.trim();
+      if (!t || !x) return "Saisissez un titre et un texte.";
+      var l = lire("publications", []); l.unshift({ type: $("f1").value, titre: t, texte: x, date: new Date().toISOString().slice(0, 10) }); ecrire("publications", l);
+      return "Publié. Les parents le voient sur leur tableau de bord.";
+    } }
+};
+
+function panneau(act) {
+  var f = FORMS[act], p = $("panneau");
+  p.innerHTML = '<form class="pf"><h3>' + f.titre + "</h3>" + f.champs() + '<button type="submit" class="go">' + f.bouton + '</button><p class="res" role="status"></p></form>';
+  if (f.init) f.init();
+  p.querySelector("form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    p.querySelector(".res").textContent = f.ok();
+    if ($("stats")) $("stats").innerHTML = statsHtml();
+    majRecap();
+  });
+}
+
+function jourSuivant(d, n) { var t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); }
+function debutSemaine(d) { var t = new Date(d + "T00:00:00Z"); return jourSuivant(d, -((t.getUTCDay() + 6) % 7)); }
+
+function recapHtml() {
+  var pa = lire("paiements", []), sem = {}, auj = debutSemaine(new Date().toISOString().slice(0, 10));
+  pa.forEach(function (x) { var w = debutSemaine(x.date); (sem[w] = sem[w] || []).push(x); });
+  var cles = Object.keys(sem);
+  if (cles.indexOf(auj) === -1) cles.push(auj);
+  cles.sort().reverse();
+  function somme(l) { return l.reduce(function (t, x) { return t + x.montant; }, 0); }
+  var h = '<h3 class="titreMenu">Récapitulatif hebdomadaire</h3><div class="stats">' +
+    carte("Reçu cette semaine", fcfa(somme(sem[auj] || []))) + carte("Paiements cette semaine", (sem[auj] || []).length) + "</div>" +
+    '<div class="tableau"><table><thead><tr><th>Semaine</th><th class="num">Paiements</th><th class="num">Total reçu</th><th></th></tr></thead><tbody>';
+  cles.slice(0, 8).forEach(function (w) {
+    var l = sem[w] || [];
+    h += "<tr><td>" + dateFr(w) + " au " + dateFr(jourSuivant(w, 6)) + '</td><td class="num">' + l.length + '</td><td class="num"><strong>' + fcfa(somme(l)) +
+      '</strong></td><td><button type="button" class="go" data-w="' + w + '">Détail</button></td></tr>';
+  });
+  return h + '</tbody></table></div><div id="detailSem"></div>';
+}
+
+function majRecap() {
+  var r = $("recap");
+  if (!r) return;
+  r.innerHTML = recapHtml();
+  Array.prototype.forEach.call(r.querySelectorAll("[data-w]"), function (b) {
+    b.addEventListener("click", function () {
+      var l = lire("paiements", []).filter(function (x) { return debutSemaine(x.date) === b.dataset.w; }).sort(function (a, c) { return a.date < c.date ? 1 : -1; });
+      var h = "<p>Aucun paiement cette semaine-là.</p>";
+      if (l.length) {
+        h = '<div class="tableau"><table><thead><tr><th>Date</th><th>Élève</th><th>Rubrique</th><th class="num">Montant</th></tr></thead><tbody>';
+        l.forEach(function (x) { h += "<tr><td>" + dateFr(x.date) + "</td><td>" + esc(x.eleve) + "</td><td>" + libRubrique(x.rubrique) + '</td><td class="num">' + fcfa(x.montant) + "</td></tr>"; });
+        h += "</tbody></table></div>";
+      }
+      $("detailSem").innerHTML = h;
+    });
+  });
+}
+
+function dessinerTableau() {
+  var z = $("contenuTab"), h = "";
+  if (user.role === "directeur") {
+    $("titreTab").textContent = "Tableau de bord de l'école";
+    z.innerHTML = '<div id="stats"></div><h3 class="titreMenu">Accès rapide</h3><div class="rapide">' +
+      '<button type="button" class="go" data-act="eleve">Inscrire un élève</button>' +
+      '<button type="button" class="go" data-act="perso">Ajouter un membre du personnel</button>' +
+      '<button type="button" class="go" data-act="notif">Rédiger une notification</button><button type="button" class="go" data-act="pub">Faire une publication</button><button type="button" class="go" data-act="ppres">Pointage du personnel</button></div><div id="panneau"></div><div id="recap"></div>';
+  } else if (user.role === "secretaire") {
+    $("titreTab").textContent = "Tableau de bord de la secrétaire";
+    z.innerHTML = '<div id="stats"></div><div class="rapide"><button type="button" class="go" data-act="eleve">Inscrire ou importer des élèves</button><button type="button" class="go" data-act="classes">Listes des classes</button><button type="button" class="go" data-act="paiement">Encaisser un paiement</button><button type="button" class="go" data-act="notif">Rédiger une notification</button><button type="button" class="go" data-act="pub">Faire une publication</button><button type="button" class="go" data-act="ppres">Pointage du personnel</button></div><div id="panneau"></div><div id="recap"></div>';
+  } else if (user.role === "enseignant") {
+    $("titreTab").textContent = "Espace pédagogique";
+    var cl = user.classe, ds = new Date().toISOString().slice(0, 10);
+    var el = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []), pr = lire("presence:" + cl + ":" + ds, {});
+    h = "<p>Classe <strong>" + CLASSES[cl] + "</strong> : " + el.length + ' élève(s)</p><button type="button" class="go" data-cl="' + cl + '">Saisir les notes</button>';
+    h += '<h3 class="titreMenu">Notifications</h3>' + htmlListe(notifsPour().slice(0, 5), htmlNotif);
+    h += '<h3 class="titreMenu">Mon salaire</h3>' + htmlMonSalaire(user.extraId || user.id);
+    h += '<h3 class="titreMenu">Présence du jour</h3>' + etatAppel(cl, ds) + '<button type="button" class="go" data-act="presence">Faire l\'appel</button>';
+    z.innerHTML = h + "<p>Emploi du temps : bientôt disponible.</p>";
+  } else if (user.role === "agent") {
+    $("titreTab").textContent = "Espace du personnel";
+    z.innerHTML = "<p>Bienvenue, " + esc(user.nom) + '.</p><h3 class="titreMenu">Mon salaire</h3>' + htmlMonSalaire(user.extraId || user.id) + '<h3 class="titreMenu">Notifications</h3>' + htmlListe(notifsPour().slice(0, 5), htmlNotif) +
+      '<h3 class="titreMenu">Publications de la direction</h3>' + htmlListe(lire("publications", []).slice(0, 5), htmlPub);
+  } else {
+    $("titreTab").textContent = "Suivi de " + user.enfant;
+    var ev = ($("evalParent") && $("evalParent").value) || "1", bl = bilanEleve(user.enfant, user.classe, ficheEleve(user.enfant), lire("paiements", []));
+    h = "<p>Classe : <strong>" + CLASSES[user.classe] + '</strong></p><div class="stats">' + carte("Total payé", fcfa(bl.paye)) + carte("Reste dû", fcfa(bl.reste)) + "</div>" + htmlTranches(user.enfant, user.classe, bl);
+    h += '<h3 class="titreMenu">Notes</h3><label for="evalParent">Évaluation</label><select id="evalParent">';
+    for (var k2 = 1; k2 <= 5; k2++) h += '<option value="' + k2 + '"' + (String(k2) === ev ? " selected" : "") + ">Évaluation sommative " + k2 + "</option>";
+    h += '</select><div class="tableau" style="margin-top:14px"><table><thead><tr><th>Discipline</th><th class="num">CM /18</th><th class="num">CP /2</th><th class="num">Note /20</th></tr></thead><tbody>';
+    var tot = 0, n = 0;
+    Array.prototype.forEach.call($("matiere").options, function (o) {
+      var d = lire("notes:" + user.classe + ":" + ev + ":" + o.value, {})[user.enfant], ok = d && d.total !== "" && d.total !== undefined;
+      if (ok) { tot += parseFloat(d.total); n++; }
+      h += "<tr><td>" + o.textContent + '</td><td class="num">' + (ok ? d.cm : "–") + '</td><td class="num">' + (ok ? d.cp : "–") + '</td><td class="num"><strong>' + (ok ? d.total : "–") + "</strong></td></tr>";
+    });
+    h += "</tbody></table></div><p><strong>Moyenne : " + (n ? (tot / n).toFixed(2) + " / 20" : "pas encore de notes") + "</strong></p>";
+    h += '<h3 class="titreMenu">Notifications</h3>' + htmlListe(notifsPour().slice(0, 5), htmlNotif) +
+      '<h3 class="titreMenu">Publications de la direction</h3>' + htmlListe(lire("publications", []).slice(0, 5), htmlPub);
+    z.innerHTML = h;
+    $("evalParent").addEventListener("change", ouvrirTableau);
+  }
+  if ($("stats")) $("stats").innerHTML = statsHtml();
+  majRecap();
+  Array.prototype.forEach.call(z.querySelectorAll("[data-act]"), function (b) { b.addEventListener("click", function () { if (b.dataset.act === "eleve") ouvrirVue("import"); else if (b.dataset.act === "classes") ouvrirVue("classes"); else if (["notif", "pub", "presence", "ppres"].indexOf(b.dataset.act) !== -1) ouvrirVue(b.dataset.act); else panneau(b.dataset.act); }); });
+  Array.prototype.forEach.call(z.querySelectorAll("[data-cl]"), function (b) { b.addEventListener("click", function () { allerSaisie(b.dataset.cl); }); });
+}
+
+var FICHES_DEFAUT = { "AGOSSOU Codjo Marc": { sexe: "M" }, "DOSSOU Akouvi Sara": { sexe: "F" } };
+
+function dateIso(d) {
+  var m = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/.exec(d);
+  return m ? m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2) : d;
+}
+function dateFr(d) { return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d.split("-").reverse().join("/") : esc(d); }
+
+function effectifs(cl, fi) {
+  var l = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []), g = 0, f = 0;
+  l.forEach(function (n) { var x = (fi[n] || FICHES_DEFAUT[n] || {}).sexe; if (x === "M") g++; else if (x === "F") f++; });
+  return { g: g, f: f, t: l.length };
+}
+
+var LIBS = { xlsx: "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", pdf: "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" };
+function chargerLib(cle) {
+  function pret() { return cle === "xlsx" ? typeof XLSX !== "undefined" : !!window.jspdf; }
+  if (pret()) return Promise.resolve();
+  return new Promise(function (ok, ko) {
+    var sc = document.createElement("script");
+    sc.src = LIBS[cle]; sc.async = true;
+    sc.onload = function () { if (pret()) ok(); else ko({ message: "bibliothèque indisponible." }); };
+    sc.onerror = function () { ko({ message: "chargement impossible (vérifiez la connexion)." }); };
+    document.head.appendChild(sc);
+  });
+}
+function avecLib(cle, fn) { return chargerLib(cle).then(fn); }
+
+function lireFichier(file, cb) {
+  if (/\.xlsx?$/i.test(file.name)) {
+    chargerLib("xlsx").then(function () {
+    var rx = new FileReader();
+    rx.onload = function () {
+      try { var wb = XLSX.read(rx.result, { type: "array" }); cb(XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]], { FS: ";", dateNF: "yyyy-mm-dd" })); }
+      catch (e) { cb(null); }
+    };
+    rx.readAsArrayBuffer(file);
+    }).catch(function () { cb(null); });
+    return;
+  }
+  var r = new FileReader();
+  r.onload = function () {
+    if (String(r.result).indexOf("\uFFFD") !== -1) {
+      var r2 = new FileReader();
+      r2.onload = function () { cb(r2.result); };
+      r2.readAsText(file, "windows-1252");
+    } else cb(r.result);
+  };
+  r.readAsText(file);
+}
+
+function lireCsv(texte) {
+  var lignes = texte.replace(/^\uFEFF/, "").split(/\r?\n/).filter(function (l) { return l.trim(); });
+  if (!lignes.length) return [];
+  var sep = lignes[0].split(";").length > lignes[0].split(",").length ? ";" : ",";
+  function cellules(l) {
+    var r = [], c = "", q = false;
+    for (var i = 0; i < l.length; i++) {
+      var ch = l.charAt(i);
+      if (ch === '"') { if (q && l.charAt(i + 1) === '"') { c += '"'; i++; } else q = !q; }
+      else if (ch === sep && !q) { r.push(c.trim()); c = ""; }
+      else c += ch;
+    }
+    r.push(c.trim());
+    return r;
+  }
+  var tete = cellules(lignes[0]).map(function (t) { return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, ""); });
+  return lignes.slice(1).map(function (l) {
+    var c = cellules(l), o = {};
+    tete.forEach(function (t, i) { o[t] = c[i] || ""; });
+    return o;
+  });
+}
+
+function lirePhoto(file, cb) {
+  var r = new FileReader();
+  r.onload = function () {
+    var img = new Image();
+    img.onload = function () {
+      var k = Math.min(1, 160 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL("image/jpeg", 0.7));
+    };
+    img.onerror = function () { cb(""); };
+    img.src = r.result;
+  };
+  r.onerror = function () { cb(""); };
+  r.readAsDataURL(file);
+}
+
+// Retourne un message d'erreur, ou "" si l'élève est inscrit
+function inscrire(f, cl) {
+  if (!f.nom || !f.prenom) return "Le nom et le prénom sont obligatoires.";
+  var cle = (f.nom.toUpperCase() + " " + f.prenom).trim(), fi = lire("fiches", {}), liste = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []);
+  if (f.matricule && Object.keys(fi).some(function (k) { return fi[k].matricule === f.matricule; })) return "Le matricule " + f.matricule + " existe déjà.";
+  if (tousEleves().some(function (e) { return e.nom === cle; })) return "Un élève s'appelle déjà " + cle + ".";
+  f.classe = cl; fi[cle] = f; liste.push(cle);
+  if (!ecrire("fiches", fi) || !ecrire("eleves:" + cl, liste)) return "Enregistrement impossible : stockage plein.";
+  return "";
+}
+
+function importerFichier(texte, clDef) {
+  var ok = 0, rej = [];
+  lireCsv(texte).forEach(function (o, i) {
+    var cl = (o.classe || "").toLowerCase(), sx = (o.sexe || "").charAt(0).toLowerCase();
+    if (!CLASSES.hasOwnProperty(cl)) cl = clDef;
+    var err = inscrire({ matricule: o.matricule || "", nom: o.nom || "", prenom: o.prenom || "",
+      sexe: sx === "f" ? "F" : (sx === "m" || sx === "g") ? "M" : "",
+      naissance: dateIso(o.datenaissance || ""), lieu: o.lieunaissance || "", contact: o.contactparent || "", photo: "",
+      nouveau: /^n/i.test(o.statut || "") ? "N" : /^a/i.test(o.statut || "") ? "A" : "", option: o.option === "2" ? "2" : "1", pieces: {} }, cl);
+    if (err) rej.push("ligne " + (i + 2) + " : " + err); else ok++;
+  });
+  return ok + " élève(s) importé(s)" + (rej.length ? ", " + rej.length + " ignoré(s) (" + rej.slice(0, 3).join(" ; ") + (rej.length > 3 ? "…" : "") + ")." : ".");
+}
+
+function renommer(a, b) {
+  Object.keys(CLASSES).forEach(function (c) {
+    var l = lire("eleves:" + c, ELEVES_DEFAUT[c] || []), i = l.indexOf(a);
+    if (i !== -1) { l[i] = b; ecrire("eleves:" + c, l); }
+  });
+  var pa = lire("paiements", []);
+  pa.forEach(function (x) { if (x.eleve === a) x.eleve = b; });
+  ecrire("paiements", pa);
+  var cp = lire("comptesParents", []);
+  cp.forEach(function (x) { if (x.enfant === a) { x.enfant = b; x.nom = "Parent de " + b; } });
+  ecrire("comptesParents", cp);
+  try {
+    for (var j = localStorage.length - 1; j >= 0; j--) {
+      var k = localStorage.key(j);
+      if (k && (k.indexOf("notes:") === 0 || k.indexOf("presence:") === 0 || k.indexOf("appr:") === 0)) {
+        var o = JSON.parse(localStorage.getItem(k));
+        if (o && o.hasOwnProperty(a)) { o[b] = o[a]; delete o[a]; localStorage.setItem(k, JSON.stringify(o)); }
+      }
+    }
+  } catch (err) {}
+}
+
+function modifier(ancien, cl, f) {
+  if (!f.nom || !f.prenom) return "Le nom et le prénom sont obligatoires.";
+  var cle = (f.nom.toUpperCase() + " " + f.prenom).trim(), fi = lire("fiches", {});
+  if (f.matricule && Object.keys(fi).some(function (k) { return k !== ancien && fi[k].matricule === f.matricule; })) return "Le matricule " + f.matricule + " existe déjà.";
+  if (cle !== ancien && tousEleves().some(function (e) { return e.nom === cle; })) return "Un élève s'appelle déjà " + cle + ".";
+  if (cle !== ancien) renommer(ancien, cle);
+  fi = lire("fiches", {});
+  delete fi[ancien]; f.classe = cl; fi[cle] = f;
+  return ecrire("fiches", fi) ? "" : "Enregistrement impossible : stockage plein.";
+}
+
+function formModif(z, cl, n) {
+  var f = lire("fiches", {})[n] || FICHES_DEFAUT[n] || {}, nom = f.nom, pre = f.prenom;
+  if (nom === undefined) { var t = n.split(" "); nom = t[0]; pre = t.slice(1).join(" "); }
+  z.innerHTML = '<form class="pf" id="formModif"><h3>Modifier la fiche de ' + esc(n) + "</h3>" +
+    champ("Numéro matricule", '<input id="eMat" value="' + esc(f.matricule || "") + '">') +
+    champ("Nom", '<input id="eNom" value="' + esc(nom) + '" required>') + champ("Prénom", '<input id="ePre" value="' + esc(pre) + '" required>') +
+    champ("Sexe", '<select id="eSexe"><option value="">Non précisé</option><option value="M"' + (f.sexe === "M" ? " selected" : "") + '>Garçon</option><option value="F"' + (f.sexe === "F" ? " selected" : "") + ">Fille</option></select>") +
+    champ("Date de naissance", '<input id="eNais" type="date" value="' + esc(/^\d{4}-/.test(f.naissance || "") ? f.naissance : "") + '">') +
+    champ("Lieu de naissance", '<input id="eLieu" value="' + esc(f.lieu || "") + '">') +
+    champ("Contact du parent", '<input id="eTel" type="tel" value="' + esc(f.contact || "") + '">') +
+    champsScolarite("e", f) + champ("Nouvelle photo (facultatif)", '<input id="ePhoto" type="file" accept="image/*">') +
+    '<button type="submit" class="go">Enregistrer les modifications</button> <button type="button" class="quitter" id="annMod">Annuler</button><p class="res" id="resMod" role="status"></p></form>';
+  $("annMod").addEventListener("click", function () { vueClasses(z, cl); });
+  $("formModif").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var fic = $("ePhoto").files[0];
+    function fin(photo) {
+      var err = modifier(n, cl, { matricule: $("eMat").value.trim(), nom: $("eNom").value.trim(), prenom: $("ePre").value.trim(), sexe: $("eSexe").value,
+        naissance: $("eNais").value, lieu: $("eLieu").value.trim(), contact: $("eTel").value.trim(), photo: photo || f.photo || "", nouveau: $("eNouv").value, option: $("eOpt").value, pieces: lireScolarite("e").pieces });
+      if (err) { $("resMod").textContent = err; return; }
+      vueClasses(z, cl);
+    }
+    if (fic) lirePhoto(fic, fin); else fin("");
+  });
+}
+
+function accesAgent(a) {
+  var mdp = nouveauMdp();
+  if (a.compte) { setMdp(a.id, mdp); return { nom: a.nom, id: a.id, mdp: mdp }; }
+  var ex = lire("accesExtra", {});
+  if (ex[a.id]) { ex[a.id].mdp = mdp; ecrire("accesExtra", ex); return { nom: a.nom, id: ex[a.id].id, mdp: mdp }; }
+  var ids = {}, id;
+  comptesBrut().forEach(function (x) { ids[x.id] = 1; });
+  var base = "agent-" + a.nom.split(" ")[0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+  do { id = base + Math.floor(100 + Math.random() * 900); } while (ids[id]);
+  ex[a.id] = { id: id, mdp: mdp }; ecrire("accesExtra", ex);
+  return { nom: a.nom, id: id, mdp: mdp };
+}
+function accesCellAg(a) {
+  return a.login ? "<strong>" + esc(a.login) + "</strong><br>" + esc(a.mdp) + ' <button type="button" class="quitter" data-ra="' + esc(a.id) + '">Réinitialiser</button>'
+    : '<button type="button" class="go" data-ga="' + esc(a.id) + '">Générer</button>';
+}
+
+function nouveauMdp() {
+  var al = "abcdefghjkmnpqrstuvwxyz23456789", r = "", b = new Uint32Array(6);
+  if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(b);
+  else for (var j = 0; j < 6; j++) b[j] = Math.floor(Math.random() * 4294967296);
+  for (var i = 0; i < 6; i++) r += al.charAt(b[i] % al.length);
+  return r;
+}
+function setMdp(id, mdp) { var o = lire("mdpPerso", {}); o[id] = mdp; ecrire("mdpPerso", o); }
+
+// Génère l'accès parent d'un élève, ou réinitialise son mot de passe s'il existe déjà
+function accesParent(nom, cl) {
+  var tous = comptesBrut(), c = tous.filter(function (x) { return x.role === "parent" && x.enfant === nom; })[0], mdp = nouveauMdp();
+  if (c) { setMdp(c.id, mdp); return { parent: true, nom: nom, classe: cl, id: c.id, mdp: mdp }; }
+  var ids = {}, id;
+  tous.forEach(function (x) { ids[x.id] = 1; });
+  var base = "p-" + nom.split(" ")[0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+  do { id = base + Math.floor(100 + Math.random() * 900); } while (ids[id]);
+  var l = lire("comptesParents", []);
+  l.push({ id: id, mdp: mdp, role: "parent", nom: "Parent de " + nom, enfant: nom });
+  ecrire("comptesParents", l);
+  return { parent: true, nom: nom, classe: cl, id: id, mdp: mdp };
+}
+
+function htmlFicheAcces(x) {
+  return '<div class="bulletin acces"><strong>CENTRE NOUVELLE DIMENSION</strong><br><small>Accès à l\'application de l\'école</small><p>' +
+    (x.parent ? "Parent de : <strong>" + esc(x.nom) + "</strong>" + (x.classe ? " (" + CLASSES[x.classe] + ")" : "") : "Agent : <strong>" + esc(x.nom) + "</strong>") +
+    "</p><p>Identifiant : <strong>" + esc(x.id) + "</strong><br>Mot de passe : <strong>" + esc(x.mdp) + '</strong></p><p class="aide2">Conservez ces informations en lieu sûr. Le mot de passe peut être réinitialisé à l\'école.</p></div>';
+}
+function slipsView(z, retour, slips) {
+  $("titreVue").textContent = "Fiches d'accès";
+  z.innerHTML = '<p class="noprint"><button type="button" class="quitter" id="sRet">← Retour</button> <button type="button" class="go" id="sImp">Imprimer les fiches d\'accès</button></p>' +
+    '<p class="aide2 noprint">Notez ou imprimez maintenant : le mot de passe ne sera plus affiché ensuite. Il pourra être réinitialisé.</p>' + slips.map(htmlFicheAcces).join("");
+  $("sRet").addEventListener("click", retour);
+  $("sImp").addEventListener("click", function () { try { window.print(); } catch (e) {} });
+}
+
+function vueClasses(z, cl, slips) {
+  $("titreVue").textContent = "Classes";
+  if (slips && slips.length) { slipsView(z, function () { vueClasses(z, cl); }, slips); return; }
+  var fi = lire("fiches", {}), h = "";
+  if (cl) {
+    var e = effectifs(cl, fi), l = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []);
+    var staff = user.role === "directeur" || user.role === "secretaire", tot = {}, pays = lire("paiements", []);
+    lire("paiements", []).forEach(function (x) { tot[x.eleve] = (tot[x.eleve] || 0) + x.montant; });
+    var cpt = {};
+    comptesBrut().forEach(function (c) { if (c.role === "parent") cpt[c.enfant] = c; });
+    h = '<button type="button" class="go" id="retClasses">← Toutes les classes</button><h3 class="titreMenu">' + CLASSES[cl] + "</h3>" +
+      '<div class="stats">' + carte("Garçons", e.g) + carte("Filles", e.f) + carte("Total", e.t) + "</div>" + (staff ? '<p><button type="button" class="go" id="accTous">Générer les accès de toute la classe</button></p><p class="res" id="accMsg" role="status"></p>' : "");
+    if (!l.length) h += "<p>Aucun élève dans cette classe.</p>";
+    else {
+      h += '<div class="tableau"><table><thead><tr><th>N°</th><th>Photo</th><th>Matricule</th><th>Nom et prénoms</th><th>Sexe</th><th>Naissance</th><th>Contact parent</th>' + (staff ? '<th class="num">Payé</th><th class="num">Reste dû</th><th>Dossier</th><th>Accès parent (identifiant / mot de passe)</th><th></th>' : "") + '</tr></thead><tbody>';
+      l.forEach(function (n, i) {
+        var f = fi[n] || FICHES_DEFAUT[n] || {};
+        h += "<tr><td>" + (i + 1) + "</td><td>" + (f.photo ? '<img class="idph" alt="Photo de ' + esc(n) + '" src="' + esc(f.photo) + '">' : '<div class="photo">Photo</div>') + "</td><td>" +
+          esc(f.matricule || "") + "</td><td>" + esc(n) + "</td><td>" + (f.sexe === "M" ? "Garçon" : f.sexe === "F" ? "Fille" : "") + "</td><td>" +
+          (f.naissance ? dateFr(f.naissance) : "") + (f.lieu ? " à " + esc(f.lieu) : "") + "</td><td>" + esc(f.contact || "") + "</td>" + (staff ? cellPaie(n, cl, f, pays) + '<td>' + dossierCell(f) + '</td><td>' + (cpt[n] ? "<strong>" + esc(cpt[n].id) + "</strong><br>" + esc(cpt[n].mdp) + ' <button type="button" class="quitter" data-rp="' + i + '">Réinitialiser</button>' : '<button type="button" class="go" data-gp="' + i + '">Générer</button>') + '</td><td><button type="button" class="go" data-m="' + i + '">Modifier</button></td>' : "") + "</tr>";
+      });
+      h += "</tbody></table></div>";
+    }
+    z.innerHTML = h;
+    $("retClasses").addEventListener("click", function () { vueClasses(z); });
+    Array.prototype.forEach.call(z.querySelectorAll("[data-gp]"), function (b) {
+      b.addEventListener("click", function () { vueClasses(z, cl, [accesParent(l[parseInt(b.dataset.gp, 10)], cl)]); });
+    });
+    Array.prototype.forEach.call(z.querySelectorAll("[data-rp]"), function (b) {
+      deuxClics(b, function () { vueClasses(z, cl, [accesParent(l[parseInt(b.dataset.rp, 10)], cl)]); });
+    });
+    if ($("accTous")) $("accTous").addEventListener("click", function () {
+      var sl = l.filter(function (n) { return !cpt[n]; }).map(function (n) { return accesParent(n, cl); });
+      if (!sl.length) { $("accMsg").textContent = "Tous les élèves de cette classe ont déjà un accès."; return; }
+      vueClasses(z, cl, sl);
+    });
+    Array.prototype.forEach.call(z.querySelectorAll("[data-m]"), function (b) {
+      b.addEventListener("click", function () { formModif(z, cl, l[parseInt(b.dataset.m, 10)]); });
+    });
+    return;
+  }
+  var cls = user.role === "enseignant" ? [user.classe] : Object.keys(CLASSES), tg = 0, tf = 0, tt = 0;
+  h = '<p class="aide2">Touchez une classe pour voir sa liste d\'élèves.</p><div class="tableau"><table><thead><tr><th>Classe</th><th class="num">Garçons</th><th class="num">Filles</th><th class="num">Total</th></tr></thead><tbody>';
+  cls.forEach(function (c) {
+    var e = effectifs(c, fi); tg += e.g; tf += e.f; tt += e.t;
+    h += '<tr><td><button type="button" class="go" data-c="' + c + '">' + CLASSES[c] + '</button></td><td class="num">' + e.g + '</td><td class="num">' + e.f + '</td><td class="num"><strong>' + e.t + "</strong></td></tr>";
+  });
+  h += '<tr><th>Total</th><th class="num">' + tg + '</th><th class="num">' + tf + '</th><th class="num">' + tt + "</th></tr></tbody></table></div>";
+  if (tt > tg + tf) h += '<p class="aide2">' + (tt - tg - tf) + " élève(s) sans sexe renseigné sont comptés dans le total seulement.</p>";
+  z.innerHTML = h;
+  Array.prototype.forEach.call(z.querySelectorAll("[data-c]"), function (b) { b.addEventListener("click", function () { vueClasses(z, b.dataset.c); }); });
+}
+
+function vueImport(z) {
+  $("titreVue").textContent = "Importation des élèves";
+  z.innerHTML =
+    '<section class="bloc"><h3>1. Importer par fichier</h3>' +
+    '<p class="aide2">Fichier Excel (.xlsx) ou CSV. Première ligne du fichier (en-têtes des colonnes) :<br><code>matricule;nom;prenom;sexe;date_naissance;lieu_naissance;contact_parent;classe;statut</code><br>Seuls le nom et le prénom sont obligatoires, les autres colonnes peuvent rester vides. Statut : nouveau ou ancien. Sexe : M ou F. Date : JJ/MM/AAAA ou AAAA-MM-JJ. Classe : CI, CP, CE1, CE2, CM1 ou CM2, sinon la classe choisie ci-dessous. Les photos se joignent à la saisie manuelle.</p>' +
+    '<form class="pf" id="formFichier"><label>Classe par défaut<select id="cDef">' + optClasses() + "</select></label>" +
+    '<label>Fichier<input type="file" id="fic" accept=".csv,.xlsx,.xls,text/csv,text/plain" required></label>' +
+    '<button type="submit" class="go">Importer le fichier</button><p class="res" id="resFic" role="status"></p></form></section>' +
+    '<section class="bloc"><h3>2. Saisir à la main</h3><form class="pf" id="formMain">' +
+    champ("Classe", '<select id="mClasse">' + optClasses() + "</select>") +
+    champ("Numéro matricule", '<input id="mMat">') +
+    champ("Nom", '<input id="mNom" required>') + champ("Prénom", '<input id="mPre" required>') +
+    champ("Sexe", '<select id="mSexe"><option value="">Non précisé</option><option value="M">Garçon</option><option value="F">Fille</option></select>') +
+    champ("Date de naissance", '<input id="mNais" type="date">') + champ("Lieu de naissance", '<input id="mLieu">') +
+    champ("Contact du parent", '<input id="mTel" type="tel" inputmode="tel">') +
+    champsScolarite("m", {}) + champ("Photo d'identité", '<input id="mPhoto" type="file" accept="image/*">') +
+    '<button type="submit" class="go">Inscrire l\'élève</button><p class="res" id="resMain" role="status"></p></form></section>';
+
+  $("formFichier").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var f = $("fic").files[0];
+    if (!f) return;
+    lireFichier(f, function (t) { $("resFic").textContent = t === null ? "Lecture du fichier Excel impossible. Enregistrez-le en CSV puis réessayez." : importerFichier(t, $("cDef").value); $("formFichier").reset(); });
+  });
+
+  $("formMain").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var cl = $("mClasse").value, fic = $("mPhoto").files[0], nom = $("mNom").value.trim(), pre = $("mPre").value.trim();
+    function fin(photo) {
+      var err = inscrire({ matricule: $("mMat").value.trim(), nom: nom, prenom: pre, sexe: $("mSexe").value, naissance: $("mNais").value,
+        lieu: $("mLieu").value.trim(), contact: $("mTel").value.trim(), photo: photo, nouveau: $("mNouv").value, option: $("mOpt").value, pieces: lireScolarite("m").pieces }, cl);
+      if (err) { $("resMain").textContent = err; return; }
+      $("resMain").textContent = nom.toUpperCase() + " " + pre + " est inscrit(e) en " + CLASSES[cl] + ".";
+      $("formMain").reset();
+    }
+    if (fic) lirePhoto(fic, fin); else fin("");
+  });
+}
+
+function libCible(c) {
+  if (c === "tous") return "Tout le monde";
+  if (c === "parents") return "Tous les parents";
+  if (c === "enseignants") return "Tous les enseignants";
+  return "Parents de " + (CLASSES[String(c).slice(3)] || "");
+}
+function optCibles() {
+  return '<option value="tous">Tout le monde</option><option value="parents">Tous les parents</option><option value="enseignants">Tous les enseignants</option>' +
+    Object.keys(CLASSES).map(function (c) { return '<option value="cl:' + c + '">Parents de ' + CLASSES[c] + "</option>"; }).join("");
+}
+function notifsPour() {
+  return lire("notifications", []).filter(function (n) {
+    if (user.role === "parent") return n.cible === "tous" || n.cible === "parents" || n.cible === "cl:" + user.classe;
+    if (user.role === "enseignant") return n.cible === "tous" || n.cible === "enseignants";
+    if (user.role === "agent") return n.cible === "tous";
+    return true;
+  });
+}
+function htmlNotif(x) {
+  return "<strong>" + esc(libCible(x.cible)) + "</strong> <small>" + dateFr(x.date) + (x.auteur ? ", " + esc(x.auteur) : "") + "</small><p>" + esc(x.texte) + "</p>";
+}
+function htmlPub(x) {
+  return "<strong>" + esc(x.titre) + "</strong> <small>" + esc(x.type) + ", " + dateFr(x.date) + (x.auteur ? ", " + esc(x.auteur) : "") + "</small><p>" + esc(x.texte) + "</p>";
+}
+function htmlListe(items, html) {
+  return items.length ? items.map(function (x) { return '<article class="pub">' + html(x) + "</article>"; }).join("") : "<p>Rien pour le moment.</p>";
+}
+function rendreListe(id, items, cle, peut, html) {
+  var z = $(id);
+  z.innerHTML = items.length ? items.map(function (x) {
+    return '<article class="pub">' + html(x) + (peut && x.id ? '<button type="button" class="suppr" data-id="' + x.id + '">Supprimer</button>' : "") + "</article>";
+  }).join("") : "<p>Rien pour le moment.</p>";
+  Array.prototype.forEach.call(z.querySelectorAll("[data-id]"), function (b) {
+    deuxClics(b, function () {
+      function garder(x) { return String(x.id) !== b.dataset.id; }
+      ecrire(cle, lire(cle, []).filter(garder));
+      rendreListe(id, items.filter(garder), cle, peut, html);
+    });
+  });
+}
+function peutRediger() { return user.role === "directeur" || user.role === "secretaire"; }
+
+function vueNotif(z) {
+  $("titreVue").textContent = "Notifications";
+  var peut = peutRediger(), h = "";
+  if (peut) h += '<section class="bloc"><form class="pf" id="formNotif"><h3>Rédiger une notification</h3>' +
+    champ("Destinataires", '<select id="nCible">' + optCibles() + "</select>") +
+    champ("Message (300 caractères maximum)", '<textarea id="nTexte" rows="3" maxlength="300" required></textarea>') +
+    '<button type="submit" class="go">Envoyer la notification</button><p class="res" id="resNotif" role="status"></p></form></section>';
+  h += '<h3 class="titreMenu">' + (peut ? "Notifications envoyées" : "Mes notifications") + '</h3><div id="listeNotif"></div>';
+  z.innerHTML = h;
+  rendreListe("listeNotif", peut ? lire("notifications", []) : notifsPour(), "notifications", peut, htmlNotif);
+  if (!peut) return;
+  $("formNotif").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var t = $("nTexte").value.trim();
+    if (!t) return;
+    var l = lire("notifications", []);
+    l.unshift({ id: Date.now(), cible: $("nCible").value, texte: t, date: new Date().toISOString().slice(0, 10), auteur: user.nom });
+    ecrire("notifications", l);
+    $("formNotif").reset();
+    $("resNotif").textContent = "Notification envoyée.";
+    rendreListe("listeNotif", l, "notifications", true, htmlNotif);
+  });
+}
+
+function vuePub(z) {
+  $("titreVue").textContent = "Publications";
+  var peut = peutRediger(), h = "";
+  if (peut) h += '<section class="bloc"><form class="pf" id="formPub"><h3>Faire une publication</h3>' +
+    champ("Type", '<select id="pType"><option>Communiqué</option><option>Annonce</option><option>Certificat</option><option>Document officiel</option></select>') +
+    champ("Titre", '<input id="pTitre" required>') + champ("Texte", '<textarea id="pTexte" rows="6" required></textarea>') +
+    '<button type="submit" class="go">Publier</button><p class="res" id="resPub" role="status"></p></form></section>';
+  h += '<h3 class="titreMenu">' + (peut ? "Publications en ligne" : "Publications de la direction") + '</h3><div id="listePub"></div>';
+  z.innerHTML = h;
+  rendreListe("listePub", lire("publications", []), "publications", peut, htmlPub);
+  if (!peut) return;
+  $("formPub").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var t = $("pTitre").value.trim(), x = $("pTexte").value.trim();
+    if (!t || !x) return;
+    var l = lire("publications", []);
+    l.unshift({ id: Date.now(), type: $("pType").value, titre: t, texte: x, date: new Date().toISOString().slice(0, 10), auteur: user.nom });
+    ecrire("publications", l);
+    $("formPub").reset();
+    $("resPub").textContent = "Publication mise en ligne.";
+    rendreListe("listePub", l, "publications", true, htmlPub);
+  });
+}
+
+var NOM_SEANCE = { matin: "Matin", soir: "Soir" };
+var JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+
+// Lundi, mardi, jeudi, vendredi : matin et soir. Mercredi : matin seulement. Pas de cours le week-end.
+function seances(ds) {
+  var j = new Date(ds + "T00:00:00Z").getUTCDay();
+  if (j === 0 || j === 6) return [];
+  return j === 3 ? ["matin"] : ["matin", "soir"];
+}
+function appelFait(cl, ds, se) { return lire("presence:" + cl + ":" + ds + ":" + se, null); }
+
+function etatAppel(cl, ds) {
+  var se = seances(ds);
+  if (!se.length) return "<p>Pas de cours aujourd'hui.</p>";
+  return "<p>" + se.map(function (x) {
+    var a = appelFait(cl, ds, x), k = 0;
+    if (!a) return NOM_SEANCE[x] + " : appel pas encore fait";
+    Object.keys(a).forEach(function (n) { if (a[n]) k++; });
+    return NOM_SEANCE[x] + " : " + k + " présent(s) sur " + Object.keys(a).length;
+  }).join("<br>") + (se.length === 1 ? "<br>Mercredi : matinée seulement." : "") + "</p>";
+}
+
+function vuePresence(z, cl0, ds0) {
+  $("titreVue").textContent = "Présence";
+  var enseignant = user.role === "enseignant", cl = enseignant ? user.classe : (cl0 || "ci");
+  var auj = new Date().toISOString().slice(0, 10), ds = ds0 && ds0 <= auj ? ds0 : auj;
+  var el = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []), se = seances(ds);
+  var h = '<div class="pf">' + (enseignant ? "<p>Classe <strong>" + CLASSES[cl] + "</strong></p>" : champ("Classe", '<select id="pCl">' + optClasses() + "</select>")) +
+    champ("Date", '<input type="date" id="pDate" value="' + ds + '" max="' + auj + '">') + "</div>";
+  h += "<p><strong>" + JOURS[new Date(ds + "T00:00:00Z").getUTCDay()] + " " + dateFr(ds) + "</strong></p>";
+  if (!se.length) h += "<p>Pas de cours le week-end.</p>";
+  else if (se.length === 1) h += "<p>Mercredi : matinée seulement.</p>";
+  if (!enseignant) h += '<p class="aide2">Consultation seulement : l\'appel est fait par l\'enseignant de la classe.</p>';
+  se.forEach(function (x) {
+    var a = appelFait(cl, ds, x);
+    h += '<section class="bloc"><h3>' + NOM_SEANCE[x] + "</h3>";
+    if (!el.length) h += "<p>Aucun élève dans cette classe.</p>";
+    else {
+      h += '<form class="pf" data-form="' + x + '">';
+      el.forEach(function (n) { h += '<label class="ligne"><input type="checkbox" data-nom="' + esc(n) + '"' + (a && a[n] ? " checked" : "") + (enseignant ? "" : " disabled") + "> " + esc(n) + "</label>"; });
+      if (enseignant) h += '<button type="button" class="quitter" data-tout="1">Tout cocher</button> <button type="submit" class="go">Enregistrer l\'appel du ' + NOM_SEANCE[x].toLowerCase() + "</button>";
+      h += '<p class="res" role="status">' + (a ? "Appel déjà enregistré." : enseignant ? "" : "Appel pas encore fait.") + "</p></form>";
+    }
+    h += "</section>";
+  });
+  z.innerHTML = h;
+  if ($("pCl")) { $("pCl").value = cl; $("pCl").addEventListener("change", function () { vuePresence(z, $("pCl").value, ds); }); }
+  $("pDate").addEventListener("change", function () { if ($("pDate").value) vuePresence(z, cl, $("pDate").value); });
+  Array.prototype.forEach.call(z.querySelectorAll("[data-form]"), function (f) {
+    var x = f.dataset.form, t = f.querySelector("[data-tout]");
+    if (t) t.addEventListener("click", function () { Array.prototype.forEach.call(f.querySelectorAll("[data-nom]"), function (b) { b.checked = true; }); });
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var r = {}, k = 0, bs = f.querySelectorAll("[data-nom]");
+      Array.prototype.forEach.call(bs, function (b) { r[b.dataset.nom] = b.checked; if (b.checked) k++; });
+      ecrire("presence:" + cl + ":" + ds + ":" + x, r);
+      f.querySelector(".res").textContent = "Appel du " + NOM_SEANCE[x].toLowerCase() + " enregistré : " + k + " présent(s), " + (bs.length - k) + " absent(s).";
+    });
+  });
+}
+
+var ORDRE_BUL = ["dic", "math", "exp", "lect", "est", "es", "ea_poesie", "ea_dessin", "eps"];
+var LIB_BUL = { dic: "Dictée", math: "Math", exp: "Expression écrite", lect: "Compréhension de l'écrit", est: "EST", es: "ES", ea_poesie: "EA (Oral)", ea_dessin: "EA (Dessin/Couture)", eps: "EPS" };
+
+function apprMat(n) { return n < 5 ? "Très insuffisant" : n < 10 ? "Insuffisant" : n < 15 ? "Satisfaisant" : "Très satisfaisant"; }
+function apprAuto(m) {
+  if (m === null) return "";
+  return m >= 16 ? "Excellent travail. Félicitations !" : m >= 14 ? "Très bon travail. Continuez ainsi." : m >= 12 ? "Travail satisfaisant. Peut mieux faire." : m >= 10 ? "Travail passable. Des efforts sont nécessaires." : "Résultats insuffisants. Doit redoubler d'efforts.";
+}
+function apprDe(cl, ev, r) { var a = lire("appr:" + cl + ":" + ev, {})[r.nom]; return a !== undefined ? a : apprAuto(r.moy); }
+function r100(x) { return Math.round(x * 100); }
+
+function classeDonnees(cl, ev) {
+  var el = lire("eleves:" + cl, ELEVES_DEFAUT[cl] || []), tn = {};
+  ORDRE_BUL.forEach(function (m) { tn[m] = lire("notes:" + cl + ":" + ev + ":" + m, {}); });
+  var res = el.map(function (nom) {
+    var lignes = ORDRE_BUL.map(function (m) {
+      var d = tn[m][nom], ok = d && d.total !== "" && d.total !== undefined;
+      return { m: m, cm: ok ? d.cm : "", cp: ok ? d.cp : "", total: ok ? parseFloat(d.total) : null };
+    });
+    var v = lignes.filter(function (l) { return l.total !== null; }).map(function (l) { return l.total; });
+    return { nom: nom, lignes: lignes, moy: v.length ? v.reduce(function (a, b) { return a + b; }, 0) / v.length : null,
+      valid: v.filter(function (x) { return x >= 10; }).length, max: v.length ? Math.max.apply(null, v) : null, min: v.length ? Math.min.apply(null, v) : null };
+  });
+  res.forEach(function (r) {
+    r.rang = r.moy === null ? null : 1 + res.filter(function (o) { return o.moy !== null && r100(o.moy) > r100(r.moy); }).length;
+  });
+  return { el: el, res: res };
+}
+
+function htmlBulletin(cl, ev, r, eff, fi, par) {
+  var f = fi[r.nom] || FICHES_DEFAUT[r.nom] || {}, appr = apprDe(cl, ev, r);
+  var photo = f.photo ? '<img class="bul-photo" alt="Photo de ' + esc(r.nom) + '" src="' + esc(f.photo) + '">' : '<div class="bul-photo">Photo</div>';
+  var h = '<div class="bulletin"><div class="bul-tete"><div><strong>RÉPUBLIQUE DU BÉNIN</strong><br><small>Ministère des Enseignements Maternel et Primaire</small><br><small>Circonscription scolaire de ' + esc(par.circ || "…") +
+    "</small><br><strong>CENTRE NOUVELLE DIMENSION</strong></div>" +
+    '<div class="bul-titre"><strong>BULLETIN DE NOTES</strong><br><small>ÉVALUATION SOMMATIVE ' + esc(ev) + " • ANNÉE " + esc(par.annee || "2026 - 2027") + "</small></div>" +
+    '<div class="bul-droite">Classe : <strong>' + CLASSES[cl] + "</strong><br>Niveau : " + CLASSES[cl] + "<br>Effectif : " + eff + " élèves</div></div>" +
+    '<div class="bul-eleve">' + photo + '<div class="bul-infos"><div><small>Nom et prénoms</small><strong>' + esc(r.nom) + "</strong></div><div><small>Matricule</small>" + esc(f.matricule || "–") +
+    "</div><div><small>Sexe</small>" + (f.sexe === "M" ? "Masculin (M)" : f.sexe === "F" ? "Féminin (F)" : "–") + "</div><div><small>Naissance</small>" +
+    (f.naissance ? dateFr(f.naissance) : "–") + (f.lieu ? " à " + esc(f.lieu) : "") + "</div></div></div>";
+  h += '<table><thead><tr><th>Matière / Discipline (APC)</th><th class="num">CM</th><th class="num">CP</th><th class="num">Note /20</th><th>Appréciation</th></tr></thead><tbody>';
+  r.lignes.forEach(function (l) {
+    var ok = l.total !== null;
+    h += "<tr><td><strong>" + esc(LIB_BUL[l.m]) + '</strong></td><td class="num">' + (ok ? esc(l.cm) : "–") + '</td><td class="num">' + (ok ? esc(l.cp) : "–") +
+      '</td><td class="num">' + (ok ? '<span class="nb' + (l.total < 10 ? " bas" : "") + '">' + l.total.toFixed(2) + "</span>" : "–") + "</td><td>" + (ok ? apprMat(l.total) : "") + "</td></tr>";
+  });
+  h += "</tbody></table>";
+  var atteint = r.valid >= 6;
+  h += '<div class="bul-syn"><div>Moyenne générale<br><b class="big">' + (r.moy === null ? "–" : r.moy.toFixed(2) + " /20") + "</b></div>" +
+    '<div>Rang de l\'élève<br><b class="big">' + (r.rang === null ? "–" : r.rang) + "</b> / " + eff + "</div>" +
+    '<div>Matières validées (≥ 10/20)<br><b class="nb">' + r.valid + " / " + ORDRE_BUL.length + " discipline(s)</b></div>" +
+    '<div>Seuil de réussite (≥ 6 mat.)<br><b class="nb' + (atteint ? "" : " bas") + '">' + (atteint ? "Seuil atteint" : "Seuil non atteint") + "</b></div>" +
+    "<div>Plus forte moyenne<br><b>" + (r.max === null ? "–" : r.max.toFixed(2) + " /20") + "</b></div>" +
+    "<div>Plus faible moyenne<br><b>" + (r.min === null ? "–" : r.min.toFixed(2) + " /20") + "</b></div></div>";
+  h += '<div class="bul-appr"><strong>APPRÉCIATION GLOBALE DE L\'ENSEIGNANT</strong><p>' + (appr ? "« " + esc(appr) + " »" : "–") + "</p></div></div>";
+  return h;
+}
+
+function vueBulletin(z, o) {
+  o = o || {};
+  $("titreVue").textContent = "Bulletin de notes";
+  var parent = user.role === "parent", ens = user.role === "enseignant", fixe = parent || ens;
+  var cl = fixe ? user.classe : (o.cl || "ci"), ev = o.ev || "1", nom = parent ? user.enfant : o.nom, tous = !parent && o.tous;
+  var D = classeDonnees(cl, ev), fi = lire("fiches", {}), par = lire("bulletinParam", {});
+  var evs = "";
+  for (var k = 1; k <= 5; k++) evs += '<option value="' + k + '">Évaluation sommative ' + k + "</option>";
+  var h = '<div class="pf noprint">' + (fixe ? "<p>Classe <strong>" + CLASSES[cl] + "</strong></p>" : champ("Classe", '<select id="bCl">' + optClasses() + "</select>")) +
+    champ("Évaluation", '<select id="bEv">' + evs + "</select>") + "</div>";
+  var r = nom ? D.res.filter(function (x) { return x.nom === nom; })[0] : null;
+
+  if (nom && !r) h += "<p>Élève introuvable dans cette classe.</p>";
+  else if (nom) {
+    h += '<p class="noprint">' + (parent ? "" : '<button type="button" class="quitter" id="bRet">← Liste de la classe</button> ') + '<button type="button" class="go" id="bImp">Imprimer ou enregistrer en PDF</button></p>';
+    h += htmlBulletin(cl, ev, r, D.el.length, fi, par);
+    if (!parent) h += '<form class="pf noprint" id="formAppr"><h3>Appréciation globale de l\'enseignant</h3>' + champ("Texte", '<textarea id="apprTxt" rows="2" maxlength="200">' + esc(apprDe(cl, ev, r)) + "</textarea>") +
+      '<button type="submit" class="go">Enregistrer l\'appréciation</button> <button type="button" class="quitter" id="apprAuto">Proposition automatique</button><p class="res" id="resAppr" role="status"></p></form>';
+  } else if (tous) {
+    h += '<p class="noprint"><button type="button" class="quitter" id="bRet">← Liste de la classe</button> <button type="button" class="go" id="bImp">Imprimer tous les bulletins</button></p>';
+    h += D.res.length ? D.res.map(function (x) { return htmlBulletin(cl, ev, x, D.el.length, fi, par); }).join("") : "<p>Aucun élève dans cette classe.</p>";
+  } else {
+    var tri = D.res.slice().sort(function (a, b) { return (a.rang === null ? 9999 : a.rang) - (b.rang === null ? 9999 : b.rang); });
+    h += "<p>Effectif : <strong>" + D.el.length + ' élève(s)</strong></p><button type="button" class="go" id="bTous">Tous les bulletins de la classe</button>';
+    if (!tri.length) h += "<p>Aucun élève dans cette classe.</p>";
+    else {
+      h += '<div class="tableau" style="margin-top:14px"><table><thead><tr><th class="num">Rang</th><th>Élève</th><th class="num">Moyenne</th><th class="num">Validées</th><th></th></tr></thead><tbody>';
+      tri.forEach(function (x) {
+        h += '<tr><td class="num">' + (x.rang === null ? "–" : x.rang) + "</td><td>" + esc(x.nom) + '</td><td class="num"><strong>' + (x.moy === null ? "–" : x.moy.toFixed(2)) + '</strong></td><td class="num">' + x.valid + " / " + ORDRE_BUL.length +
+          '</td><td><button type="button" class="go" data-b="' + esc(x.nom) + '">Bulletin</button></td></tr>';
+      });
+      h += "</tbody></table></div>";
+    }
+    if (user.role === "directeur") h += '<details class="rub noprint" style="margin-top:14px"><summary>Paramètres du bulletin</summary><form class="pf" id="formPar">' +
+      champ("Circonscription scolaire de", '<input id="pCirc" value="' + esc(par.circ || "") + '">') + champ("Année scolaire", '<input id="pAnnee" value="' + esc(par.annee || "2026 - 2027") + '">') +
+      '<button type="submit" class="go">Enregistrer</button><p class="res" id="resPar" role="status"></p></form></details>';
+  }
+  z.innerHTML = h;
+
+  function aller(x) { vueBulletin(z, { cl: cl, ev: ev, nom: x.nom, tous: x.tous }); }
+  $("bEv").value = ev;
+  $("bEv").addEventListener("change", function () { ev = $("bEv").value; aller({ nom: nom, tous: tous }); });
+  if ($("bCl")) { $("bCl").value = cl; $("bCl").addEventListener("change", function () { cl = $("bCl").value; aller({}); }); }
+  if ($("bRet")) $("bRet").addEventListener("click", function () { aller({}); });
+  if ($("bTous")) $("bTous").addEventListener("click", function () { aller({ tous: true }); });
+  if ($("bImp")) $("bImp").addEventListener("click", function () { try { window.print(); } catch (e) {} });
+  Array.prototype.forEach.call(z.querySelectorAll("[data-b]"), function (b) { b.addEventListener("click", function () { aller({ nom: b.dataset.b }); }); });
+  if ($("apprAuto")) $("apprAuto").addEventListener("click", function () { $("apprTxt").value = apprAuto(r.moy); });
+  if ($("formAppr")) $("formAppr").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var m = lire("appr:" + cl + ":" + ev, {});
+    m[nom] = $("apprTxt").value.trim();
+    ecrire("appr:" + cl + ":" + ev, m);
+    aller({ nom: nom });
+  });
+  if ($("formPar")) $("formPar").addEventListener("submit", function (e) {
+    e.preventDefault();
+    ecrire("bulletinParam", { circ: $("pCirc").value.trim(), annee: $("pAnnee").value.trim() });
+    $("resPar").textContent = "Paramètres enregistrés.";
+  });
+}
+
+function fonctionDe(c) { return c.etiquette === "promoteur" ? "Promoteur" : c.role === "directeur" ? "Directeur" : c.role === "enseignant" ? "Enseignant" : "Secrétaire"; }
+
+// Agents avec compte + agents sans compte, avec les informations de leur dossier
+function tousAgents() {
+  var dos = lire("dossiers", {}), ac = lire("accesExtra", {});
+  var base = comptesBrut().filter(function (c) { return c.role !== "parent" && !c.extraId; }).map(function (c) { return { id: c.id, nom: c.nom, fonction: fonctionDe(c), classe: c.classe, compte: true, role: c.role, login: c.id, mdp: c.mdp }; });
+  var ex = lire("agentsExtra", []).map(function (x) { var q = ac[x.id]; return { id: x.id, nom: x.nom, fonction: x.fonction || "Agent", compte: false, role: "autre", login: q ? q.id : "", mdp: q ? q.mdp : "" }; });
+  return base.concat(ex).map(function (a) {
+    var d = dos[a.id] || {};
+    a.d = d; a.nom = d.nom || a.nom; a.fonction = d.fonction || a.fonction;
+    a.statut = d.statut || ""; a.matricule = d.matricule || ""; a.archive = d.archive || null;
+    return a;
+  });
+}
+
+function creerCompte(nom, role, cl) {
+  var id = nom.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "") + Math.floor(10 + Math.random() * 90);
+  var mdp = String(Math.floor(100000 + Math.random() * 900000)), l = lire("comptesPlus", []);
+  l.push({ id: id, mdp: mdp, role: role, nom: nom, classe: role === "enseignant" ? cl : undefined });
+  ecrire("comptesPlus", l);
+  return { id: id, mdp: mdp };
+}
+
+// Enregistrement : sur claude.ai via la capacité « downloads », sinon téléchargement normal
+function sauver(nom, data, mime) {
+  var u = window.claude && window.claude.use ? window.claude.use("downloads") : Promise.resolve(null);
+  return u.then(function (dl) {
+    if (dl) return dl.save({ filename: nom, data: data });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = nom;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+}
+
+function lignesExport(l) {
+  return [["N°", "Nom et prénoms", "Fonction", "Classe", "Statut", "Matricule", "Contact"]].concat(l.map(function (a, i) {
+    return [i + 1, a.nom, a.fonction, a.classe ? CLASSES[a.classe] : "", a.statut, a.matricule, a.d.contact || ""];
+  }));
+}
+function exporterXls(l) {
+  if (typeof XLSX === "undefined") throw { message: "bibliothèque Excel indisponible." };
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(lignesExport(l)), "Personnel");
+  return sauver("liste-du-personnel.xlsx", XLSX.write(wb, { bookType: "xlsx", type: "array" }), "application/octet-stream");
+}
+function exporterPdf(l) {
+  if (!window.jspdf) throw { message: "bibliothèque PDF indisponible." };
+  var doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" }), L = lignesExport(l), W = [10, 62, 38, 22, 36, 36, 50], y = 22;
+  function ligne(r, gras) {
+    var x = 10;
+    doc.setFont("helvetica", gras ? "bold" : "normal");
+    r.forEach(function (v, i) { doc.text(doc.splitTextToSize(String(v), W[i] - 2)[0] || "", x, y); x += W[i]; });
+    y += 7;
+  }
+  doc.setFontSize(14); doc.text("CENTRE NOUVELLE DIMENSION - Liste du personnel", 10, 12);
+  doc.setFontSize(9); ligne(L[0], true);
+  L.slice(1).forEach(function (r) { if (y > 195) { doc.addPage(); y = 15; ligne(L[0], true); } ligne(r, false); });
+  return sauver("liste-du-personnel.pdf", doc.output("arraybuffer"), "application/pdf");
+}
+
+function vueAgents(z, o) {
+  o = o || {};
+  $("titreVue").textContent = o.mode === "fiche" || o.mode === "edit" ? "Fiche individuelle" : "Liste du personnel";
+  if (o.mode === "nouveau") { formAgent(z); return; }
+  var a = o.id ? tousAgents().filter(function (x) { return x.id === o.id; })[0] : null;
+  if (a && o.mode === "edit") editAgent(z, a, o.msg);
+  else if (a) ficheAgent(z, a, o.msg);
+  else listeAgents(z, o.archives);
+}
+
+function listeAgents(z, archives) {
+  var tous = tousAgents(), actifs = tous.filter(function (a) { return !a.archive; }), arch = tous.filter(function (a) { return a.archive; });
+  var src = archives ? arch : actifs, courante = src;
+  function compter(l, f) { var r = {}; l.forEach(function (a) { var k = f(a); r[k] = (r[k] || 0) + 1; }); return r; }
+  function distinct(f) { var r = {}; src.forEach(function (a) { var k = f(a); if (k) r[k] = 1; }); return Object.keys(r).sort(); }
+  function opts(v) { return '<option value="">Tous</option>' + v.map(function (x) { return "<option>" + esc(x) + "</option>"; }).join(""); }
+  var h = '<div class="ajout"><button type="button" class="go" id="aAdd">Ajouter un agent</button><button type="button" class="go" id="aXls">Exporter en Excel</button><button type="button" class="go" id="aPdf">Exporter en PDF</button>' +
+    '<button type="button" class="quitter" id="aArch">' + (archives ? "← Agents en activité" : "Archives (" + arch.length + ")") + '</button></div><p class="res" id="aMsg" role="status"></p>';
+  if (!archives) {
+    var fc = compter(actifs, function (a) { return a.fonction; }), sc = compter(actifs, function (a) { return a.statut || "Non précisé"; });
+    h += '<div class="stats">' + carte("Total en activité", actifs.length) + Object.keys(fc).map(function (k) { return carte(esc(k), fc[k]); }).join("") + "</div>" +
+      '<p class="aide2">Par statut : ' + Object.keys(sc).map(function (k) { return esc(k) + " " + sc[k]; }).join(", ") + ".</p>";
+  } else h += "<p>Anciens agents archivés : <strong>" + arch.length + "</strong></p>";
+  h += '<div class="pf">' + champ("Rechercher (nom ou matricule)", '<input id="aQ" type="search">') +
+    champ("Fonction", '<select id="aF">' + opts(distinct(function (a) { return a.fonction; })) + "</select>") +
+    champ("Classe", '<select id="aC">' + opts(distinct(function (a) { return a.classe ? CLASSES[a.classe] : ""; })) + "</select>") +
+    champ("Statut", '<select id="aS">' + opts(distinct(function (a) { return a.statut || "Non précisé"; })) + "</select>") + "</div>" +
+    '<div class="tableau"><table><thead><tr><th>N°</th><th>Nom et prénoms</th><th>Fonction</th>' + (archives ? "<th>Archivé le</th><th>Motif</th>" : "<th>Classe</th><th>Statut</th><th>Matricule</th><th>Accès (identifiant / mot de passe)</th>") +
+    '<th></th></tr></thead><tbody id="aCorps"></tbody></table></div>';
+  z.innerHTML = h;
+
+  function majTab() {
+    var q = $("aQ").value.trim().toLowerCase(), f = $("aF").value, c = $("aC").value, s2 = $("aS").value;
+    courante = src.filter(function (a) {
+      return (!q || a.nom.toLowerCase().indexOf(q) !== -1 || a.matricule.toLowerCase().indexOf(q) !== -1) && (!f || a.fonction === f) &&
+        (!c || (a.classe && CLASSES[a.classe] === c)) && (!s2 || (a.statut || "Non précisé") === s2);
+    });
+    var r = "";
+    courante.forEach(function (a, i) {
+      r += "<tr><td>" + (i + 1) + "</td><td>" + esc(a.nom) + "</td><td>" + esc(a.fonction) + "</td>" +
+        (archives ? "<td>" + dateFr(a.archive.date) + "</td><td>" + esc(a.archive.motif || "") + "</td>" : "<td>" + (a.classe ? CLASSES[a.classe] : "–") + "</td><td>" + esc(a.statut || "–") + "</td><td>" + esc(a.matricule || "–") + "</td><td>" + accesCellAg(a) + "</td>") +
+        '<td><button type="button" class="go" data-f="' + esc(a.id) + '">Fiche</button> ' + (archives ? '<button type="button" class="quitter" data-r="' + esc(a.id) + '">Restaurer</button>' : '<button type="button" class="quitter" data-e="' + esc(a.id) + '">Modifier</button>') + "</td></tr>";
+    });
+    $("aCorps").innerHTML = r || '<tr><td colspan="9">Aucun agent ne correspond.</td></tr>';
+    function agirAcces(id) {
+      var ag = tous.filter(function (x) { return x.id === id; })[0];
+      slipsView(z, function () { vueAgents(z, { archives: archives }); }, [accesAgent(ag)]);
+    }
+    Array.prototype.forEach.call($("aCorps").querySelectorAll("[data-ga]"), function (b) { b.addEventListener("click", function () { agirAcces(b.dataset.ga); }); });
+    Array.prototype.forEach.call($("aCorps").querySelectorAll("[data-ra]"), function (b) { deuxClics(b, function () { agirAcces(b.dataset.ra); }); });
+    Array.prototype.forEach.call($("aCorps").querySelectorAll("[data-f]"), function (b) { b.addEventListener("click", function () { vueAgents(z, { mode: "fiche", id: b.dataset.f }); }); });
+    Array.prototype.forEach.call($("aCorps").querySelectorAll("[data-e]"), function (b) { b.addEventListener("click", function () { vueAgents(z, { mode: "edit", id: b.dataset.e }); }); });
+    Array.prototype.forEach.call($("aCorps").querySelectorAll("[data-r]"), function (b) {
+      b.addEventListener("click", function () {
+        var t = lire("dossiers", {}); if (t[b.dataset.r]) delete t[b.dataset.r].archive; ecrire("dossiers", t);
+        vueAgents(z, { mode: "fiche", id: b.dataset.r, msg: "Dossier restauré." });
+      });
+    });
+  }
+  majTab();
+  ["aQ", "aF", "aC", "aS"].forEach(function (id) { $(id).addEventListener(id === "aQ" ? "input" : "change", majTab); });
+  function lancer(fn, ok) {
+    Promise.resolve().then(function () { return fn(courante); }).then(function () { $("aMsg").textContent = ok; })
+      .catch(function (e) { $("aMsg").textContent = e && e.code === "declined" ? "Enregistrement annulé." : "Export impossible : " + ((e && e.message) || "erreur."); });
+  }
+  $("aXls").addEventListener("click", function () { lancer(function (l) { return avecLib("xlsx", function () { return exporterXls(l); }); }, "Fichier Excel prêt (liste affichée)."); });
+  $("aPdf").addEventListener("click", function () { lancer(function (l) { return avecLib("pdf", function () { return exporterPdf(l); }); }, "Fichier PDF prêt (liste affichée)."); });
+  $("aAdd").addEventListener("click", function () { vueAgents(z, { mode: "nouveau" }); });
+  $("aArch").addEventListener("click", function () { vueAgents(z, { archives: !archives }); });
+}
+
+function formAgent(z) {
+  z.innerHTML = '<form class="pf" id="formAg"><h3>Ajouter un agent</h3>' + champ("Nom et prénoms", '<input id="nNom" required>') +
+    champ("Fonction", '<select id="nFonc"><option value="enseignant">Enseignant</option><option value="secretaire">Secrétaire</option><option value="autre">Autre</option></select>') +
+    champ("Précision de la fonction (si Autre : gardien, surveillant…)", '<input id="nPrec">') + champ("Classe (si enseignant)", '<select id="nCl">' + optClasses() + "</select>") +
+    '<p class="aide2">Chaque agent reçoit un identifiant et un mot de passe.</p>' +
+    '<button type="submit" class="go">Ajouter</button> <button type="button" class="quitter" id="nRet">Annuler</button></form>';
+  $("nRet").addEventListener("click", function () { vueAgents(z); });
+  $("formAg").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var nom = $("nNom").value.trim(), role = $("nFonc").value;
+    if (!nom) return;
+    if (role === "autre") {
+      var ex = lire("agentsExtra", []), nid = "ag" + Date.now();
+      ex.push({ id: nid, nom: nom, fonction: $("nPrec").value.trim() });
+      ecrire("agentsExtra", ex);
+      var acc = accesAgent({ id: nid, nom: nom, compte: false });
+      vueAgents(z, { mode: "edit", id: nid, msg: "Agent ajouté. Identifiant : " + acc.id + " / Mot de passe : " + acc.mdp + ". Notez-les, puis complétez le dossier." });
+    } else {
+      var c = creerCompte(nom, role, $("nCl").value);
+      vueAgents(z, { mode: "fiche", id: c.id, msg: "Agent ajouté. Identifiant : " + c.id + " / Mot de passe : " + c.mdp + ". Notez-les maintenant." });
+    }
+  });
+}
+
+function ficheAgent(z, a, msg) {
+  var d = a.d, ligne = function (t, v) { return "<tr><th>" + t + "</th><td>" + (v ? esc(v) : "–") + "</td></tr>"; };
+  var h = '<p class="noprint"><button type="button" class="quitter" id="fRet">← Liste du personnel</button> <button type="button" class="go" id="fMod">Modifier</button> <button type="button" class="quitter" id="fImp">Imprimer la fiche</button></p>' +
+    (msg ? '<p class="res" role="status">' + esc(msg) + "</p>" : "") +
+    '<div class="bulletin"><div class="bul-eleve">' + (d.photo ? '<img class="bul-photo" alt="Photo de ' + esc(a.nom) + '" src="' + esc(d.photo) + '">' : '<div class="bul-photo">Photo</div>') +
+    "<div><strong>" + esc(a.nom) + "</strong><br>" + esc(a.fonction) + (a.classe ? ", " + CLASSES[a.classe] : "") +
+    (a.archive ? '<br><span class="nb bas">Dossier archivé le ' + dateFr(a.archive.date) + "</span>" : "") + '</div></div><div class="tableau"><table><tbody>' +
+    ligne("Matricule", d.matricule) + ligne("Sexe", d.sexe === "M" ? "Masculin" : d.sexe === "F" ? "Féminin" : "") +
+    "<tr><th>Naissance</th><td>" + (d.naissance ? dateFr(d.naissance) : "–") + (d.lieu ? " à " + esc(d.lieu) : "") + "</td></tr>" +
+    ligne("Contact", d.contact) + ligne("Adresse", d.adresse) + ligne("Statut", d.statut) + "<tr><th>Prise de service</th><td>" + (d.service ? dateFr(d.service) : "–") + "</td></tr>" +
+    ligne("Diplôme", d.diplome) + ligne("Spécialité", d.specialite) + ligne("Compte de connexion", a.login || "Sans compte") + ligne("Observations", d.obs) +
+    (a.archive ? ligne("Motif d'archivage", a.archive.motif) : "") + "</tbody></table></div></div>";
+  if (user.role === "directeur") h += '<p class="noprint"><button type="button" class="quitter" id="fDisc">Suivi disciplinaire (' + discipline().filter(function (x) { return x.agent === a.id; }).length + ")</button></p>";
+  if (!a.archive) h += '<section class="bloc noprint"><h3>Accès à l\'application</h3>' + (a.login ? "<p>Identifiant : <strong>" + esc(a.login) + "</strong><br>Mot de passe : <strong>" + esc(a.mdp) +
+    '</strong></p><button type="button" class="suppr" id="aReset">Réinitialiser le mot de passe</button>' : '<p>Aucun accès créé pour cet agent.</p><button type="button" class="go" id="aReset">Générer un accès</button>') + "</section>";
+  if (a.archive) h += '<p class="noprint"><button type="button" class="go" id="fRest">Restaurer le dossier</button></p><p class="aide2 noprint">Le compte de connexion de cet agent est désactivé tant que le dossier est archivé.</p>';
+  else if (a.role === "directeur") h += '<p class="aide2 noprint">Le dossier du directeur ou du promoteur ne peut pas être archivé.</p>';
+  else if (a.role === "enseignant") h += '<section class="bloc noprint"><h3>Situation de l\'enseignant</h3><p>Classe tenue : <strong>' + (a.classe ? CLASSES[a.classe] : "aucune") + "</strong></p>" +
+    (a.classe ? '<button type="button" class="go" id="eRempl">Remplacer l\'enseignant</button> ' : "") + '<button type="button" class="suppr" id="eRetire">Retirer de l\'école</button>' +
+    '<p class="aide2">Les notes et les présences restent attachées à la classe. Un enseignant retiré ou remplacé ne peut plus se connecter.</p><div id="eZone"></div></section>';
+  else h += '<p class="noprint"><button type="button" class="suppr" id="fArch">Archiver le dossier</button></p><div id="archZone" class="noprint"></div>';
+  z.innerHTML = h;
+  $("fRet").addEventListener("click", function () { vueAgents(z); });
+  $("fMod").addEventListener("click", function () { vueAgents(z, { mode: "edit", id: a.id }); });
+  $("fImp").addEventListener("click", function () { try { window.print(); } catch (e) {} });
+  if ($("fDisc")) $("fDisc").addEventListener("click", function () { vueDiscipline(z, { type: "mesures", ag: a.id }); });
+  if ($("aReset")) {
+    var go = function () { slipsView(z, function () { vueAgents(z, { mode: "fiche", id: a.id }); }, [accesAgent(a)]); };
+    if (a.login) deuxClics($("aReset"), go); else $("aReset").addEventListener("click", go);
+  }
+  function maj(fn, m) { var t = lire("dossiers", {}); t[a.id] = t[a.id] || {}; fn(t[a.id]); ecrire("dossiers", t); vueAgents(z, { mode: "fiche", id: a.id, msg: m }); }
+  if ($("fRest")) $("fRest").addEventListener("click", function () {
+    var autre = a.role === "enseignant" && a.classe ? tousAgents().filter(function (x) { return x.role === "enseignant" && !x.archive && x.classe === a.classe && x.id !== a.id; })[0] : null;
+    if (autre) { vueAgents(z, { mode: "fiche", id: a.id, msg: "Restauration impossible : la classe " + CLASSES[a.classe] + " est déjà tenue par " + autre.nom + "." }); return; }
+    maj(function (x) { delete x.archive; }, "Dossier restauré.");
+  });
+  function zone(titre, champs, bouton, fn) {
+    $("eZone").innerHTML = '<form class="pf" id="formEns"><h3>' + titre + "</h3>" + champs + '<button type="submit" class="go">' + bouton + "</button></form>";
+    $("formEns").addEventListener("submit", function (e) { e.preventDefault(); fn(); });
+  }
+  var auj = new Date().toISOString().slice(0, 10);
+  if ($("eRetire")) $("eRetire").addEventListener("click", function () {
+    zone("Retirer l'enseignant de l'école", champ("Motif (démission, mutation, fin de contrat, retraite…)", '<input id="eMotif" required>') +
+      champ("Date d'effet", '<input id="eDate" type="date" value="' + auj + '" required>'), "Confirmer le retrait", function () {
+      maj(function (x) { x.archive = { date: $("eDate").value, motif: $("eMotif").value.trim() }; },
+        "Enseignant retiré de l'école." + (a.classe ? " La classe " + CLASSES[a.classe] + " n'a plus d'enseignant : pensez à le remplacer." : ""));
+    });
+  });
+  if ($("eRempl")) $("eRempl").addEventListener("click", function () {
+    zone("Remplacer l'enseignant", champ("Nom et prénoms du remplaçant", '<input id="eNom" required>') + champ("Motif du départ", '<input id="eMotif" required>') +
+      champ("Date d'effet", '<input id="eDate" type="date" value="' + auj + '" required>'), "Confirmer le remplacement", function () {
+      var nom = $("eNom").value.trim(), date = $("eDate").value, motif = $("eMotif").value.trim();
+      if (!nom) return;
+      var c = creerCompte(nom, "enseignant", a.classe), t = lire("dossiers", {});
+      t[a.id] = t[a.id] || {};
+      t[a.id].archive = { date: date, motif: motif + " (remplacé par " + nom + ")" };
+      t[c.id] = { service: date, obs: "Remplaçant de " + a.nom + " en " + CLASSES[a.classe] + " depuis le " + dateFr(date) + "." };
+      ecrire("dossiers", t);
+      vueAgents(z, { mode: "fiche", id: c.id, msg: "Remplacement effectué : " + a.nom + " est archivé. Nouvel enseignant de " + CLASSES[a.classe] + ", identifiant : " + c.id + " / mot de passe : " + c.mdp + ". Notez-les maintenant." });
+    });
+  });
+  if ($("fArch")) $("fArch").addEventListener("click", function () {
+    $("archZone").innerHTML = '<form class="pf" id="formArch"><h3>Archiver le dossier</h3>' + champ("Motif (retraite, démission, fin de contrat, mutation…)", '<input id="arMotif" required>') +
+      '<button type="submit" class="go">Confirmer l\'archivage</button></form>';
+    $("formArch").addEventListener("submit", function (e) {
+      e.preventDefault();
+      maj(function (x) { x.archive = { date: new Date().toISOString().slice(0, 10), motif: $("arMotif").value.trim() }; }, "Dossier archivé.");
+    });
+  });
+}
+
+function editAgent(z, a, msg) {
+  var d = a.d;
+  z.innerHTML = '<button type="button" class="quitter" id="dRet">← Fiche</button>' + (msg ? '<p class="res" role="status">' + esc(msg) + "</p>" : "") +
+    '<form class="pf" id="formDos"><h3>Modifier les informations</h3>' +
+    champ("Nom et prénoms", '<input id="dNom" value="' + esc(a.nom) + '" required>') + champ("Fonction", '<input id="dFonc" value="' + esc(a.fonction) + '">') +
+    champ("Numéro matricule", '<input id="dMat" value="' + esc(d.matricule || "") + '">') +
+    champ("Sexe", '<select id="dSexe"><option value="">Non précisé</option><option value="M"' + (d.sexe === "M" ? " selected" : "") + '>Masculin</option><option value="F"' + (d.sexe === "F" ? " selected" : "") + ">Féminin</option></select>") +
+    champ("Date de naissance", '<input id="dNais" type="date" value="' + esc(/^\d{4}-/.test(d.naissance || "") ? d.naissance : "") + '">') +
+    champ("Lieu de naissance", '<input id="dLieu" value="' + esc(d.lieu || "") + '">') + champ("Contact (téléphone)", '<input id="dTel" type="tel" value="' + esc(d.contact || "") + '">') +
+    champ("Adresse", '<input id="dAdr" value="' + esc(d.adresse || "") + '">') + champ("Statut (ex. APE, ACE, vacataire)", '<input id="dStat" value="' + esc(d.statut || "") + '">') +
+    champ("Date de prise de service", '<input id="dServ" type="date" value="' + esc(/^\d{4}-/.test(d.service || "") ? d.service : "") + '">') +
+    champ("Diplôme le plus élevé", '<input id="dDipl" value="' + esc(d.diplome || "") + '">') + champ("Spécialité ou qualification", '<input id="dSpec" value="' + esc(d.specialite || "") + '">') +
+    champ("Observations", '<textarea id="dObs" rows="3">' + esc(d.obs || "") + "</textarea>") + champ("Nouvelle photo (facultatif)", '<input id="dPhoto" type="file" accept="image/*">') +
+    '<button type="submit" class="go">Enregistrer</button>' + (a.compte ? "" : ' <button type="button" class="suppr" id="dSupp">Retirer cet agent</button>') + "</form>";
+  $("dRet").addEventListener("click", function () { vueAgents(z, { mode: "fiche", id: a.id }); });
+  if ($("dSupp")) deuxClics($("dSupp"), function () {
+    ecrire("agentsExtra", lire("agentsExtra", []).filter(function (x) { return x.id !== a.id; }));
+    var ae = lire("accesExtra", {}); delete ae[a.id]; ecrire("accesExtra", ae);
+    var t = lire("dossiers", {}); delete t[a.id]; ecrire("dossiers", t);
+    vueAgents(z);
+  });
+  $("formDos").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var fic = $("dPhoto").files[0];
+    function fin(photo) {
+      var n = { nom: $("dNom").value.trim(), fonction: $("dFonc").value.trim(), matricule: $("dMat").value.trim(), sexe: $("dSexe").value, naissance: $("dNais").value, lieu: $("dLieu").value.trim(),
+        contact: $("dTel").value.trim(), adresse: $("dAdr").value.trim(), statut: $("dStat").value.trim(), service: $("dServ").value, diplome: $("dDipl").value.trim(),
+        specialite: $("dSpec").value.trim(), obs: $("dObs").value.trim(), photo: photo || d.photo || "" };
+      if (d.archive) n.archive = d.archive;
+      var t = lire("dossiers", {}); t[a.id] = n;
+      vueAgents(z, { mode: "fiche", id: a.id, msg: ecrire("dossiers", t) ? "Informations enregistrées." : "Enregistrement impossible : stockage plein." });
+    }
+    if (fic) lirePhoto(fic, fin); else fin("");
+  });
+}
+
+var STATUTS = { present: "Présent", retard: "En retard", absent: "Absent", permission: "En permission", conge: "En congé" };
+function estOuvre(ds) { return seances(ds).length > 0; }
+function horaireAgents() { return lire("horaireAgents", {}).arrivee || "07:30"; }
+function pointagesDe(ds) { return lire("pointage:" + ds, {}); }
+function tousPointages() {
+  var r = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf("pointage:") === 0) {
+        var d = k.slice(9), o = JSON.parse(localStorage.getItem(k));
+        Object.keys(o).forEach(function (id) { var x = o[id]; x.date = d; x.id = id; r.push(x); });
+      }
+    }
+  } catch (e) {}
+  return r;
+}
+function libDecision(x) {
+  if (x.statut !== "absent" && x.statut !== "retard") return "–";
+  return x.decision === "justifiee" ? "Justifiée" : x.decision === "non" ? "Non justifiée" : "En attente";
+}
+function marqueJ(j) { return j === "Non justifiée" || j === "En attente" ? '<span class="nb bas">' + j + "</span>" : j; }
+
+function lireImg(file, max, q, cb) {
+  var r = new FileReader();
+  r.onload = function () {
+    var img = new Image();
+    img.onload = function () {
+      var k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL("image/jpeg", q));
+    };
+    img.onerror = function () { cb(""); };
+    img.src = r.result;
+  };
+  r.onerror = function () { cb(""); };
+  r.readAsDataURL(file);
+}
+
+function exportXlsx(nom, aoa, feuille) {
+  if (typeof XLSX === "undefined") throw { message: "bibliothèque Excel indisponible." };
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), feuille || "Feuille 1");
+  return sauver(nom, XLSX.write(wb, { bookType: "xlsx", type: "array" }), "application/octet-stream");
+}
+function exportPdfTable(nom, titre, aoa, W) {
+  if (!window.jspdf) throw { message: "bibliothèque PDF indisponible." };
+  var doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" }), y = 22;
+  function ligne(r, gras) {
+    var x = 10;
+    doc.setFont("helvetica", gras ? "bold" : "normal");
+    r.forEach(function (v, i) { doc.text(doc.splitTextToSize(String(v), W[i] - 2)[0] || "", x, y); x += W[i]; });
+    y += 7;
+  }
+  doc.setFontSize(13); doc.text(titre, 10, 12); doc.setFontSize(9); ligne(aoa[0], true);
+  aoa.slice(1).forEach(function (r) { if (y > 195) { doc.addPage(); y = 15; ligne(aoa[0], true); } ligne(r, false); });
+  return sauver(nom, doc.output("arraybuffer"), "application/pdf");
+}
+
+function vuePersPresence(z, o) {
+  $("titreVue").textContent = "Présences et absences du personnel";
+  if (user.role !== "directeur" && user.role !== "secretaire") { z.innerHTML = "<p>Accès réservé à la direction et au secrétariat.</p>"; return; }
+  var auj = new Date().toISOString().slice(0, 10);
+  var e = Object.assign({ onglet: "pointage", date: auj, mois: auj.slice(0, 7), annee: auj.slice(0, 4), per: "jour", ag: "" }, o || {});
+  function aller(p) { vuePersPresence(z, Object.assign({}, e, p)); }
+  z.innerHTML = '<div class="chips noprint" id="pChips"></div><div id="pCorps"></div>';
+  [["pointage", "Pointage"], ["registre", "Registre"], ["justif", "Justifications"], ["rapport", "Rapports"]].forEach(function (t) {
+    $("pChips").appendChild(chip(t[1], e.onglet === t[0], function () { aller({ onglet: t[0], justif: null }); }));
+  });
+  var c = $("pCorps");
+  if (e.onglet === "pointage") tabPointage(c, e, aller);
+  else if (e.onglet === "registre") tabRegistre(c, e, aller);
+  else if (e.onglet === "justif") tabJustif(c, e, aller);
+  else tabRapport(c, e, aller);
+}
+
+function tabPointage(c, e, aller) {
+  var ds = e.date, auj = new Date().toISOString().slice(0, 10), ag = tousAgents().filter(function (a) { return !a.archive; }), p = pointagesDe(ds), hor = horaireAgents();
+  var h = '<div class="pf">' + champ("Date", '<input type="date" id="pDate" value="' + ds + '" max="' + auj + '">') + "</div>";
+  function fin() { c.innerHTML = h; $("pDate").addEventListener("change", function () { if ($("pDate").value) aller({ date: $("pDate").value }); }); }
+  if (!estOuvre(ds)) { h += "<p>Pas de pointage le week-end.</p>"; fin(); return; }
+  h += '<p class="aide2">Heure d\'arrivée officielle : <strong>' + hor + '</strong>. Une arrivée plus tardive est signalée comme retard.</p><div class="tableau"><table class="tpoint"><thead><tr><th>Agent</th><th>Statut</th><th>Arrivée</th><th>Départ</th><th>Motif</th></tr></thead><tbody>';
+  ag.forEach(function (a) {
+    var r = p[a.id] || {}, o = '<option value="">Non pointé</option>';
+    Object.keys(STATUTS).forEach(function (k) { o += '<option value="' + k + '"' + (r.statut === k ? " selected" : "") + ">" + STATUTS[k] + "</option>"; });
+    h += '<tr data-id="' + esc(a.id) + '"><td>' + esc(a.nom) + "<br><small>" + esc(a.fonction) + '</small></td><td><select class="pS">' + o + '</select></td><td><input type="time" class="pA" value="' + esc(r.arrivee || "") +
+      '"></td><td><input type="time" class="pD" value="' + esc(r.depart || "") + '"></td><td><input class="pM" value="' + esc(r.motif || "") + '"></td></tr>';
+  });
+  h += '</tbody></table></div><p><button type="button" class="quitter" id="pTout">Tout marquer présent</button> <button type="button" class="go" id="pSave">Enregistrer le pointage</button></p><p class="res" id="pMsg" role="status"></p><div id="pAlert"></div>';
+  if (user.role === "directeur") h += '<details class="rub"><summary>Horaire officiel</summary><form class="pf" id="formHor">' + champ("Heure d'arrivée officielle", '<input type="time" id="hArr" value="' + hor + '" required>') + '<button type="submit" class="go">Enregistrer</button></form></details>';
+  fin();
+
+  Array.prototype.forEach.call(c.querySelectorAll("tr[data-id]"), function (tr) {
+    tr.querySelector(".pA").addEventListener("change", function () {
+      var st = tr.querySelector(".pS"), v = tr.querySelector(".pA").value;
+      if (v && (st.value === "" || st.value === "present" || st.value === "retard")) st.value = v > hor ? "retard" : "present";
+    });
+  });
+  $("pTout").addEventListener("click", function () { Array.prototype.forEach.call(c.querySelectorAll(".pS"), function (st) { if (!st.value) st.value = "present"; }); });
+  if ($("formHor")) $("formHor").addEventListener("submit", function (ev) { ev.preventDefault(); ecrire("horaireAgents", { arrivee: $("hArr").value }); aller({}); });
+
+  function majAlerte() {
+    var l = ag.filter(function (a) { var r = p[a.id]; return a.role === "enseignant" && a.classe && r && ["absent", "permission", "conge"].indexOf(r.statut) !== -1; });
+    $("pAlert").innerHTML = l.length ? '<div class="bloc"><h3>Remplacement à prévoir</h3>' + l.map(function (a) {
+      var r = p[a.id];
+      return "<p><strong>" + esc(a.nom) + "</strong> (" + CLASSES[a.classe] + ") : " + STATUTS[r.statut].toLowerCase() + ". " +
+        (r.notifie ? "Parents notifiés." : '<button type="button" class="go" data-n="' + esc(a.id) + '">Notifier les parents de la classe</button>') + "</p>";
+    }).join("") + "</div>" : "";
+    Array.prototype.forEach.call($("pAlert").querySelectorAll("[data-n]"), function (b) {
+      b.addEventListener("click", function () {
+        var a = ag.filter(function (x) { return x.id === b.dataset.n; })[0], nl = lire("notifications", []);
+        nl.unshift({ id: Date.now(), cible: "cl:" + a.classe, texte: "L'enseignant de la classe " + CLASSES[a.classe] + " est absent le " + dateFr(ds) + ". La direction prend les dispositions nécessaires.", date: auj, auteur: user.nom });
+        ecrire("notifications", nl);
+        p[a.id].notifie = true; ecrire("pointage:" + ds, p);
+        majAlerte();
+      });
+    });
+  }
+  majAlerte();
+
+  $("pSave").addEventListener("click", function () {
+    var t = {};
+    Array.prototype.forEach.call(c.querySelectorAll("tr[data-id]"), function (tr) {
+      var id = tr.dataset.id, st = tr.querySelector(".pS").value, ar = tr.querySelector(".pA").value;
+      if (!st) return;
+      if (st === "present" && ar && ar > hor) st = "retard";
+      t[id] = Object.assign({}, p[id], { statut: st, arrivee: ar, depart: tr.querySelector(".pD").value, motif: tr.querySelector(".pM").value.trim() });
+    });
+    p = t;
+    $("pMsg").textContent = ecrire("pointage:" + ds, t) ? "Pointage enregistré pour " + Object.keys(t).length + " agent(s)." : "Enregistrement impossible : stockage plein.";
+    majAlerte();
+  });
+}
+
+function tabRegistre(c, e, aller) {
+  var ds = e.date, auj = new Date().toISOString().slice(0, 10), ag = tousAgents().filter(function (a) { return !a.archive; }), p = pointagesDe(ds);
+  var n = { present: 0, retard: 0, absent: 0, permission: 0, conge: 0 }, np = 0, rows = "";
+  ag.forEach(function (a) {
+    var r = p[a.id];
+    if (!r) { np++; rows += "<tr><td>" + esc(a.nom) + "</td><td>Non pointé</td><td>–</td><td>–</td><td></td><td>–</td></tr>"; return; }
+    n[r.statut] = (n[r.statut] || 0) + 1;
+    rows += "<tr><td>" + esc(a.nom) + "</td><td>" + (STATUTS[r.statut] || "") + "</td><td>" + esc(r.arrivee || "–") + "</td><td>" + esc(r.depart || "–") + "</td><td>" + esc(r.motif || "") + "</td><td>" + marqueJ(libDecision(r)) + "</td></tr>";
+  });
+  c.innerHTML = '<div class="pf">' + champ("Date", '<input type="date" id="rDate" value="' + ds + '" max="' + auj + '">') + "</div>" +
+    (estOuvre(ds) ? '<div class="stats">' + carte("Présents", n.present) + carte("En retard", n.retard) + carte("Absents", n.absent) + carte("Permission", n.permission) + carte("Congé", n.conge) + carte("Non pointés", np) + "</div>" +
+      '<div class="tableau"><table><thead><tr><th>Agent</th><th>Statut</th><th>Arrivée</th><th>Départ</th><th>Motif</th><th>Justification</th></tr></thead><tbody>' + rows + "</tbody></table></div>" : "<p>Pas de pointage le week-end.</p>");
+  $("rDate").addEventListener("change", function () { if ($("rDate").value) aller({ date: $("rDate").value }); });
+}
+
+function tabJustif(c, e, aller) {
+  var dir = user.role === "directeur", noms = {};
+  tousAgents().forEach(function (a) { noms[a.id] = a.nom; });
+  if (e.justif) {
+    var jd = e.justif.date, jid = e.justif.id, rec = pointagesDe(jd)[jid];
+    if (!rec) { aller({ justif: null }); return; }
+    var dec = function (v, t) { return '<option value="' + v + '"' + ((rec.decision || "") === v ? " selected" : "") + ">" + t + "</option>"; };
+    c.innerHTML = '<button type="button" class="quitter" id="jRet">← Liste</button><form class="pf" id="formJ"><h3>' + esc(noms[jid] || jid) + ", " + dateFr(jd) + " : " + (STATUTS[rec.statut] || "") + "</h3>" +
+      champ("Motif", '<input id="jMotif" value="' + esc(rec.motif || "") + '">') + champ("Justificatif (ex. certificat médical n° …, convocation)", '<input id="jJust" value="' + esc(rec.just || "") + '">') +
+      champ("Photo du justificatif (facultatif)", '<input id="jDoc" type="file" accept="image/*">') +
+      (rec.doc ? '<p><img alt="Justificatif" style="max-width:100%;border:1px solid var(--bord);border-radius:6px" src="' + esc(rec.doc) + '"></p>' : "") +
+      champ("Décision du directeur", '<select id="jDec"' + (dir ? "" : " disabled") + ">" + dec("", "En attente") + dec("justifiee", "Justifiée") + dec("non", "Non justifiée") + "</select>") +
+      champ("Observation du directeur", '<textarea id="jObs" rows="2"' + (dir ? "" : " disabled") + ">" + esc(rec.observation || "") + "</textarea>") +
+      (dir ? "" : '<p class="aide2">La décision et l\'observation sont réservées au directeur.</p>') + '<button type="submit" class="go">Enregistrer</button><p class="res" id="jMsg" role="status"></p></form>';
+    $("jRet").addEventListener("click", function () { aller({ justif: null }); });
+    $("formJ").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var fic = $("jDoc").files[0];
+      function fin(doc) {
+        var t = pointagesDe(jd), r = t[jid];
+        r.motif = $("jMotif").value.trim(); r.just = $("jJust").value.trim(); if (doc) r.doc = doc;
+        if (dir) { r.decision = $("jDec").value; r.observation = $("jObs").value.trim(); }
+        if (ecrire("pointage:" + jd, t)) aller({ justif: null }); else $("jMsg").textContent = "Enregistrement impossible : stockage plein.";
+      }
+      if (fic) lireImg(fic, 900, 0.6, fin); else fin("");
+    });
+    return;
+  }
+  var l = tousPointages().filter(function (x) { return x.date.indexOf(e.mois) === 0 && (x.statut === "absent" || x.statut === "retard"); }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  var att = l.filter(function (x) { return libDecision(x) === "En attente"; }).length;
+  var h = '<div class="pf">' + champ("Mois", '<input type="month" id="jMois" value="' + e.mois + '">') + "</div><p>Retards et absences du mois : <strong>" + l.length + "</strong>, dont <strong>" + att + "</strong> en attente de décision.</p>";
+  if (!l.length) h += "<p>Aucun retard ni absence ce mois-ci.</p>";
+  else {
+    h += '<div class="tableau"><table><thead><tr><th>Date</th><th>Agent</th><th>Statut</th><th>Motif</th><th>Décision</th><th></th></tr></thead><tbody>';
+    l.forEach(function (x) {
+      h += "<tr><td>" + dateFr(x.date) + "</td><td>" + esc(noms[x.id] || x.id) + "</td><td>" + (STATUTS[x.statut] || "") + "</td><td>" + esc(x.motif || "") + "</td><td>" + marqueJ(libDecision(x)) +
+        '</td><td><button type="button" class="go" data-j="' + esc(x.date + "|" + x.id) + '">Traiter</button></td></tr>';
+    });
+    h += "</tbody></table></div>";
+  }
+  c.innerHTML = h;
+  $("jMois").addEventListener("change", function () { if ($("jMois").value) aller({ mois: $("jMois").value }); });
+  Array.prototype.forEach.call(c.querySelectorAll("[data-j]"), function (b) {
+    b.addEventListener("click", function () { var t = b.dataset.j.split("|"); aller({ justif: { date: t[0], id: t.slice(1).join("|") } }); });
+  });
+}
+
+function tabRapport(c, e, aller) {
+  var per = e.per, val = per === "jour" ? e.date : per === "mois" ? e.mois : e.annee, auj = new Date().toISOString().slice(0, 10);
+  var recs = tousPointages().filter(function (x) { return x.date.indexOf(val) === 0; });
+  var ags = tousAgents(), noms = {}, res = {};
+  ags.forEach(function (a) { noms[a.id] = a; });
+  recs.forEach(function (x) {
+    var r = res[x.id] = res[x.id] || { present: 0, retard: 0, aj: 0, anj: 0, perm: 0, conge: 0 };
+    if (x.statut === "present") r.present++; else if (x.statut === "retard") r.retard++;
+    else if (x.statut === "absent") { if (x.decision === "justifiee") r.aj++; else r.anj++; }
+    else if (x.statut === "permission") r.perm++; else if (x.statut === "conge") r.conge++;
+  });
+  var lignes = [["Agent", "Fonction", "Présent", "En retard", "Absent justifié", "Absent non justifié", "Permission", "Congé", "Jours de présence", "Jours d'absence"]], tot = [0, 0, 0, 0, 0, 0, 0, 0];
+  ags.filter(function (a) { return (!a.archive || res[a.id]) && (!e.ag || a.id === e.ag); }).forEach(function (a) {
+    var r = res[a.id] || { present: 0, retard: 0, aj: 0, anj: 0, perm: 0, conge: 0 }, v = [r.present, r.retard, r.aj, r.anj, r.perm, r.conge, r.present + r.retard, r.aj + r.anj];
+    v.forEach(function (n, i) { tot[i] += n; });
+    lignes.push([a.nom, a.fonction].concat(v));
+  });
+  lignes.push(["TOTAL", ""].concat(tot));
+  var periode = per === "jour" ? dateFr(val) : per === "mois" ? val.slice(5) + "/" + val.slice(0, 4) : val;
+  var saisie = per === "jour" ? '<input type="date" id="qVal" value="' + e.date + '" max="' + auj + '">' : per === "mois" ? '<input type="month" id="qVal" value="' + e.mois + '">' : '<input type="number" id="qVal" min="2020" max="2100" value="' + e.annee + '">';
+  var h = '<div class="pf noprint">' + champ("Période", '<select id="qPer"><option value="jour"' + (per === "jour" ? " selected" : "") + '>Journalier</option><option value="mois"' + (per === "mois" ? " selected" : "") + '>Mensuel</option><option value="annee"' + (per === "annee" ? " selected" : "") + ">Annuel</option></select>") +
+    champ(per === "jour" ? "Date" : per === "mois" ? "Mois" : "Année", saisie) +
+    champ("Agent", '<select id="qAg"><option value="">Tous les agents</option>' + ags.map(function (a) { return '<option value="' + esc(a.id) + '"' + (e.ag === a.id ? " selected" : "") + ">" + esc(a.nom) + "</option>"; }).join("") + "</select>") + "</div>" +
+    '<p class="noprint"><button type="button" class="go" id="qXls">Exporter en Excel</button> <button type="button" class="go" id="qPdf">Exporter en PDF</button> <button type="button" class="quitter" id="qImp">Imprimer</button></p><p class="res noprint" id="qMsg" role="status"></p>' +
+    '<h3 class="titreMenu">Rapport de présence du personnel : ' + esc(periode) + (e.ag && noms[e.ag] ? ", " + esc(noms[e.ag].nom) : "") + '</h3><div class="tableau"><table><thead><tr>' +
+    lignes[0].map(function (t, i) { return '<th class="' + (i > 1 ? "num" : "") + '">' + t + "</th>"; }).join("") + "</tr></thead><tbody>" +
+    lignes.slice(1).map(function (r, k) { return "<tr>" + r.map(function (v, i) { return '<td class="' + (i > 1 ? "num" : "") + '">' + (k === lignes.length - 2 ? "<strong>" + esc(v) + "</strong>" : esc(v)) + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>";
+  if (e.ag) {
+    var d = recs.filter(function (x) { return x.id === e.ag; }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    h += '<h3 class="titreMenu">Historique individuel</h3>' + (d.length ? '<div class="tableau"><table><thead><tr><th>Date</th><th>Statut</th><th>Arrivée</th><th>Départ</th><th>Motif</th><th>Justification</th></tr></thead><tbody>' +
+      d.map(function (x) { return "<tr><td>" + dateFr(x.date) + "</td><td>" + (STATUTS[x.statut] || "") + "</td><td>" + esc(x.arrivee || "–") + "</td><td>" + esc(x.depart || "–") + "</td><td>" + esc(x.motif || "") + "</td><td>" + marqueJ(libDecision(x)) + "</td></tr>"; }).join("") + "</tbody></table></div>" : "<p>Aucun pointage sur cette période.</p>");
+  }
+  c.innerHTML = h;
+  $("qPer").addEventListener("change", function () { aller({ per: $("qPer").value }); });
+  $("qAg").addEventListener("change", function () { aller({ ag: $("qAg").value }); });
+  $("qVal").addEventListener("change", function () { var v = $("qVal").value; if (v) aller(per === "jour" ? { date: v } : per === "mois" ? { mois: v } : { annee: v }); });
+  $("qImp").addEventListener("click", function () { try { window.print(); } catch (x) {} });
+  function lancer(fn, ok) {
+    Promise.resolve().then(fn).then(function () { $("qMsg").textContent = ok; })
+      .catch(function (x) { $("qMsg").textContent = x && x.code === "declined" ? "Enregistrement annulé." : "Export impossible : " + ((x && x.message) || "erreur."); });
+  }
+  $("qXls").addEventListener("click", function () { lancer(function () { return avecLib("xlsx", function () { return exportXlsx("rapport-presence-personnel-" + val + ".xlsx", lignes, "Présence"); }); }, "Fichier Excel prêt."); });
+  $("qPdf").addEventListener("click", function () { lancer(function () { return avecLib("pdf", function () { return exportPdfTable("rapport-presence-personnel-" + val + ".pdf", "CENTRE NOUVELLE DIMENSION - Présence du personnel : " + periode, lignes, [50, 32, 20, 20, 24, 28, 22, 18, 26, 26]); }); }, "Fichier PDF prêt."); });
+}
+
+var DISC_TYPES = { "Retards répétés": "retards", "Absences injustifiées": "absences", "Non-respect des horaires": "horaires", "Non-exécution des tâches pédagogiques": "taches",
+  "Non-respect du règlement intérieur": "reglement", "Rapports d’incidents": "incident", "Observations et mesures prises": "mesures" };
+var DISC_LIB = { retards: "Retards répétés", absences: "Absences injustifiées", horaires: "Non-respect des horaires", taches: "Non-exécution des tâches pédagogiques",
+  reglement: "Non-respect du règlement intérieur", incident: "Rapports d’incidents", mesures: "Observations et mesures prises" };
+var TYPES_FICHE = { retards: "Retards répétés", absences: "Absences injustifiées", horaires: "Non-respect des horaires", taches: "Non-exécution des tâches pédagogiques",
+  reglement: "Non-respect du règlement intérieur", incident: "Rapport d’incident", observation: "Observation" };
+var MESURES = ["Aucune pour le moment", "Observation orale", "Avertissement écrit", "Blâme", "Convocation", "Transmis à la hiérarchie", "Autre"];
+var STATUTS_DISC = { ouvert: "Ouvert", mesure: "Mesure prise", classe: "Classé" };
+var GRAVITES = { legere: "Légère", moyenne: "Moyenne", grave: "Grave" };
+
+function discipline() { return lire("discipline", []); }
+function comptePointage(prefixe, t) {
+  var r = {};
+  tousPointages().forEach(function (x) {
+    if (x.date.indexOf(prefixe) !== 0) return;
+    if ((t === "retards" && x.statut === "retard") || (t === "absences" && x.statut === "absent" && x.decision !== "justifiee")) r[x.id] = (r[x.id] || 0) + 1;
+  });
+  return r;
+}
+
+function vueDiscipline(z, o) {
+  $("titreVue").textContent = "Suivi disciplinaire";
+  if (user.role !== "directeur") { z.innerHTML = "<p>Accès réservé à la direction.</p>"; return; }
+  var auj = new Date().toISOString().slice(0, 10);
+  var e = Object.assign({ type: "mesures", mois: auj.slice(0, 7), ag: "", edit: null, nouveau: null, voir: null }, o || {});
+  function aller(p) { vueDiscipline(z, Object.assign({}, e, p)); }
+  z.innerHTML = '<div class="chips noprint" id="dChips"></div><div id="dCorps"></div>';
+  Object.keys(DISC_LIB).forEach(function (k) {
+    $("dChips").appendChild(chip(DISC_LIB[k], e.type === k, function () { aller({ type: k, ag: "", edit: null, nouveau: null, voir: null }); }));
+  });
+  var c = $("dCorps");
+  if (e.voir) ficheDisc(c, e, aller);
+  else if (e.edit !== null || e.nouveau) formDisc(c, e, aller);
+  else listeDisc(c, e, aller);
+}
+
+function listeDisc(c, e, aller) {
+  var t = e.type, ag = tousAgents(), noms = {};
+  ag.forEach(function (a) { noms[a.id] = a.nom; });
+  var seuils = lire("seuilsDisc", {}), sr = seuils.retards || 3, sa = seuils.absences || 1;
+  var l = discipline().filter(function (x) { return t === "mesures" ? (!e.ag || x.agent === e.ag) : x.type === t; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  var h = '<h3 class="titreMenu">' + DISC_LIB[t] + (e.ag && noms[e.ag] ? " : " + esc(noms[e.ag]) : "") + "</h3>";
+  if (t === "retards" || t === "absences") {
+    var seuil = t === "retards" ? sr : sa, cnt = comptePointage(e.mois, t), unite = t === "retards" ? "retard(s)" : "absence(s) non justifiée(s)";
+    var det = ag.filter(function (a) { return !a.archive && cnt[a.id]; }).sort(function (a, b) { return cnt[b.id] - cnt[a.id]; });
+    h += '<div class="pf noprint">' + champ("Mois", '<input type="month" id="dMois" value="' + e.mois + '">') + "</div>" +
+      '<p class="aide2">Détection automatique d\'après le pointage. Seuil de signalement : <strong>' + seuil + "</strong> " + unite + " dans le mois.</p>";
+    if (!det.length) h += "<p>Aucun agent concerné ce mois-ci.</p>";
+    else {
+      h += '<div class="tableau"><table><thead><tr><th>Agent</th><th class="num">Nombre</th><th>Signalement</th><th></th></tr></thead><tbody>';
+      det.forEach(function (a) {
+        var n = cnt[a.id];
+        h += "<tr><td>" + esc(a.nom) + '</td><td class="num"><strong>' + n + "</strong></td><td>" + (n >= seuil ? '<span class="nb bas">Seuil atteint</span>' : "Sous le seuil") +
+          '</td><td><button type="button" class="go" data-m="' + esc(a.id) + '">Enregistrer une mesure</button></td></tr>';
+      });
+      h += "</tbody></table></div>";
+    }
+    h += '<details class="rub noprint"><summary>Seuils de signalement</summary><form class="pf" id="formSeuil">' + champ("Retards répétés à partir de", '<input type="number" id="sR" min="1" value="' + sr + '">') +
+      champ("Absences injustifiées à partir de", '<input type="number" id="sA" min="1" value="' + sa + '">') + '<button type="submit" class="go">Enregistrer</button></form></details>';
+  }
+  if (t === "mesures") h += '<div class="pf noprint">' + champ("Agent", '<select id="dAg"><option value="">Tous les agents</option>' +
+    ag.map(function (a) { return '<option value="' + esc(a.id) + '"' + (e.ag === a.id ? " selected" : "") + ">" + esc(a.nom) + "</option>"; }).join("") + "</select>") + "</div>";
+  h += '<div class="stats">' + carte("Fiches", l.length) + carte("Ouvertes", l.filter(function (x) { return x.statut === "ouvert"; }).length) +
+    carte("Avec mesure", l.filter(function (x) { return x.mesure && x.mesure !== MESURES[0]; }).length) + '</div><p class="noprint"><button type="button" class="go" id="dNew">Nouvelle fiche</button></p>';
+  if (!l.length) h += "<p>Aucune fiche enregistrée.</p>";
+  else {
+    h += '<div class="tableau"><table><thead><tr><th>Date</th><th>Agent</th>' + (t === "mesures" ? "<th>Type</th>" : "") + "<th>Gravité</th><th>Faits</th><th>Mesure</th><th>Suite</th><th></th></tr></thead><tbody>";
+    l.forEach(function (x) {
+      h += "<tr><td>" + dateFr(x.date) + "</td><td>" + esc(noms[x.agent] || x.agent) + "</td>" + (t === "mesures" ? "<td>" + esc(TYPES_FICHE[x.type] || "") + "</td>" : "") + "<td>" + (GRAVITES[x.gravite] || "") +
+        "</td><td>" + esc(x.faits.slice(0, 80)) + (x.faits.length > 80 ? "…" : "") + "</td><td>" + esc(x.mesure || "") + "</td><td>" + (STATUTS_DISC[x.statut] || "") +
+        '</td><td><button type="button" class="go" data-v="' + x.id + '">Voir</button> <button type="button" class="quitter" data-ed="' + x.id + '">Modifier</button> <button type="button" class="suppr" data-del="' + x.id + '">Supprimer</button></td></tr>';
+    });
+    h += "</tbody></table></div>";
+  }
+  c.innerHTML = h;
+  if ($("dMois")) $("dMois").addEventListener("change", function () { if ($("dMois").value) aller({ mois: $("dMois").value }); });
+  if ($("dAg")) $("dAg").addEventListener("change", function () { aller({ ag: $("dAg").value }); });
+  if ($("formSeuil")) $("formSeuil").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    ecrire("seuilsDisc", { retards: Math.max(1, parseInt($("sR").value, 10) || 3), absences: Math.max(1, parseInt($("sA").value, 10) || 1) });
+    aller({});
+  });
+  $("dNew").addEventListener("click", function () { aller({ nouveau: {} }); });
+  Array.prototype.forEach.call(c.querySelectorAll("[data-m]"), function (b) {
+    b.addEventListener("click", function () { aller({ nouveau: { type: t, agent: b.dataset.m, faits: cnt[b.dataset.m] + " " + unite + " en " + e.mois.slice(5) + "/" + e.mois.slice(0, 4) + "." } }); });
+  });
+  Array.prototype.forEach.call(c.querySelectorAll("[data-v]"), function (b) { b.addEventListener("click", function () { aller({ voir: b.dataset.v }); }); });
+  Array.prototype.forEach.call(c.querySelectorAll("[data-ed]"), function (b) { b.addEventListener("click", function () { aller({ edit: b.dataset.ed }); }); });
+  Array.prototype.forEach.call(c.querySelectorAll("[data-del]"), function (b) {
+    deuxClics(b, function () { ecrire("discipline", discipline().filter(function (x) { return String(x.id) !== b.dataset.del; })); aller({}); });
+  });
+}
+
+function formDisc(c, e, aller) {
+  var ex = e.edit ? discipline().filter(function (x) { return String(x.id) === String(e.edit); })[0] : null, pre = e.nouveau || {};
+  var t = ex ? ex.type : (pre.type || (e.type === "mesures" ? "observation" : e.type));
+  var v = ex || { date: new Date().toISOString().slice(0, 10), agent: pre.agent || e.ag || "", faits: pre.faits || "", gravite: "legere", mesure: MESURES[0], statut: "ouvert" };
+  var ag = tousAgents().filter(function (a) { return !a.archive || a.id === v.agent; });
+  function opt(map, val) { return Object.keys(map).map(function (k) { return '<option value="' + k + '"' + (val === k ? " selected" : "") + ">" + map[k] + "</option>"; }).join(""); }
+  c.innerHTML = '<form class="pf" id="formD"><h3>' + (ex ? "Modifier la fiche" : "Nouvelle fiche") + " : " + (e.type === "mesures" ? "" : DISC_LIB[e.type]) + "</h3>" +
+    (e.type === "mesures" ? champ("Type", '<select id="fT">' + opt(TYPES_FICHE, t) + "</select>") : "") +
+    champ("Date", '<input type="date" id="fDate" value="' + esc(v.date) + '" required>') +
+    champ("Agent concerné", '<select id="fAg"><option value="">Choisir</option>' + ag.map(function (a) { return '<option value="' + esc(a.id) + '"' + (v.agent === a.id ? " selected" : "") + ">" + esc(a.nom) + " (" + esc(a.fonction) + ")</option>"; }).join("") + "</select>") +
+    champ("Gravité", '<select id="fGrav">' + opt(GRAVITES, v.gravite) + "</select>") +
+    champ("Faits constatés", '<textarea id="fFaits" rows="4" required>' + esc(v.faits) + "</textarea>") +
+    champ("Lieu (pour un incident)", '<input id="fLieu" value="' + esc(v.lieu || "") + '">') + champ("Témoins", '<input id="fTem" value="' + esc(v.temoins || "") + '">') +
+    champ("Mesure prise", '<select id="fMes">' + MESURES.map(function (m) { return "<option" + (v.mesure === m ? " selected" : "") + ">" + m + "</option>"; }).join("") + "</select>") +
+    champ("Suite du dossier", '<select id="fStat">' + opt(STATUTS_DISC, v.statut) + "</select>") +
+    champ("Observation du directeur", '<textarea id="fObs" rows="2">' + esc(v.obs || "") + "</textarea>") +
+    '<button type="submit" class="go">Enregistrer</button> <button type="button" class="quitter" id="fAnn">Annuler</button><p class="res" id="fMsg" role="status"></p></form>';
+  $("fAnn").addEventListener("click", function () { aller({ edit: null, nouveau: null }); });
+  $("formD").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    if (!$("fAg").value) { $("fMsg").textContent = "Choisissez l'agent concerné."; return; }
+    var rec = { id: ex ? ex.id : Date.now(), type: $("fT") ? $("fT").value : t, date: $("fDate").value, agent: $("fAg").value, gravite: $("fGrav").value, faits: $("fFaits").value.trim(),
+      lieu: $("fLieu").value.trim(), temoins: $("fTem").value.trim(), mesure: $("fMes").value, statut: $("fStat").value, obs: $("fObs").value.trim(), auteur: ex ? ex.auteur : user.nom };
+    var l = discipline();
+    if (ex) l = l.map(function (x) { return x.id === ex.id ? rec : x; }); else l.unshift(rec);
+    if (ecrire("discipline", l)) aller({ edit: null, nouveau: null }); else $("fMsg").textContent = "Enregistrement impossible : stockage plein.";
+  });
+}
+
+function ficheDisc(c, e, aller) {
+  var x = discipline().filter(function (y) { return String(y.id) === String(e.voir); })[0];
+  if (!x) { aller({ voir: null }); return; }
+  var a = tousAgents().filter(function (y) { return y.id === x.agent; })[0] || { nom: x.agent, fonction: "" };
+  function lg(t, v) { return "<tr><th>" + t + '</th><td style="white-space:pre-wrap">' + (v ? esc(v) : "–") + "</td></tr>"; }
+  c.innerHTML = '<p class="noprint"><button type="button" class="quitter" id="vRet">← Retour</button> <button type="button" class="go" id="vMod">Modifier</button> <button type="button" class="quitter" id="vImp">Imprimer</button></p>' +
+    '<div class="bulletin"><div class="bul-tete"><div><strong>CENTRE NOUVELLE DIMENSION</strong></div><div class="bul-titre"><strong>' + (x.type === "incident" ? "RAPPORT D’INCIDENT" : "FICHE DE SUIVI DISCIPLINAIRE") +
+    "</strong><br><small>" + esc(TYPES_FICHE[x.type] || "") + '</small></div></div><div class="tableau"><table><tbody>' + lg("Date", dateFr(x.date)) + lg("Agent concerné", a.nom + (a.fonction ? " (" + a.fonction + ")" : "")) +
+    lg("Gravité", GRAVITES[x.gravite]) + lg("Lieu", x.lieu) + lg("Témoins", x.temoins) + lg("Faits constatés", x.faits) + lg("Mesure prise", x.mesure) + lg("Suite du dossier", STATUTS_DISC[x.statut]) +
+    lg("Observation du directeur", x.obs) + lg("Rédigé par", x.auteur) + "</tbody></table></div><p>Le directeur,</p><p>&nbsp;</p></div>";
+  $("vRet").addEventListener("click", function () { aller({ voir: null }); });
+  $("vMod").addEventListener("click", function () { aller({ voir: null, edit: x.id }); });
+  $("vImp").addEventListener("click", function () { try { window.print(); } catch (er) {} });
+}
+
+function salaires() {
+  var h = lire("salairesH", null);
+  if (h) return h;
+  var o = lire("salaires", {}), r = {};
+  Object.keys(o).forEach(function (k) { r[k] = [{ depuis: "0000-00", montant: o[k] }]; });
+  return r;
+}
+function salaireAu(id, mois, sal) {
+  var m = 0;
+  (sal[id] || []).forEach(function (x) { if (x.depuis <= mois) m = x.montant; });
+  return m;
+}
+function payesSal() { return lire("paiementsSalaires", []); }
+function avancesSal() { return lire("avancesSalaires", []); }
+var SAL_TABS = { "Liste des salaires": "liste", "Paiement des salaires": "paiement", "Avances sur salaire": "avances", "Historique des paiements": "historique" };
+var MODES_PAIE = ["Espèces", "Chèque", "Virement bancaire", "Mobile Money", "Autre"];
+
+// La secrétaire ne voit pas ce qui concerne le directeur (et le promoteur)
+function agentsSal() { return tousAgents().filter(function (a) { return user.role !== "secretaire" || a.role !== "directeur"; }); }
+function visiblesSal() { var v = {}; agentsSal().forEach(function (a) { v[a.id] = a; }); return v; }
+function moisFr(m) { return m.slice(5) + "/" + m.slice(0, 4); }
+function situationSal(id, mois, sal, pay) {
+  var base = salaireAu(id, mois, sal), pr = 0, p = 0, r = 0;
+  pay.forEach(function (x) { if (x.agent === id && x.mois === mois) { p += x.montant; r += x.retenue || 0; pr += x.prime || 0; } });
+  var du = base + pr;
+  return { base: base, prime: pr, du: du, paye: p, retenu: r, reste: Math.max(0, du - p - r) };
+}
+function soldeAvance(id, av, pay) {
+  var t = 0;
+  av.forEach(function (x) { if (x.agent === id) t += x.montant; });
+  pay.forEach(function (x) { if (x.agent === id) t -= x.retenue || 0; });
+  return t;
+}
+function etatSal(s) { return s.du <= 0 ? "Salaire non défini" : s.reste === 0 ? "Soldé" : (s.paye + s.retenu) > 0 ? "Partiel" : "Non payé"; }
+function ecranImprimable(z, titre, retour, html) {
+  $("titreVue").textContent = titre;
+  z.innerHTML = '<p class="noprint"><button type="button" class="quitter" id="eRet">← Retour</button> <button type="button" class="go" id="eImp">Imprimer</button></p>' + html;
+  $("eRet").addEventListener("click", retour);
+  $("eImp").addEventListener("click", function () { try { window.print(); } catch (e) {} });
+}
+function htmlRecu(r, a, sit) {
+  return '<div class="bulletin acces"><strong>CENTRE NOUVELLE DIMENSION</strong><br><small>Reçu de paiement de salaire</small><p>Agent : <strong>' + esc(a.nom) + "</strong> (" + esc(a.fonction) +
+    ")<br>Mois concerné : <strong>" + moisFr(r.mois) + "</strong><br>Salaire du mois : " + fcfa(sit.base) + (r.prime ? "<br>Prime enregistrée : <strong>" + fcfa(r.prime) + "</strong>" : "") +
+    "</p><p>Montant payé : <strong>" + fcfa(r.montant) + "</strong><br>" + (r.retenue ? "Retenue pour remboursement d'avance : <strong>" + fcfa(r.retenue) + "</strong><br>" : "") +
+    "Mode de paiement : " + esc(r.mode) + "<br>Date : " + dateFr(r.date) + "<br>Reste à payer sur le mois : <strong>" + fcfa(sit.reste) + "</strong></p><p>La direction,</p><p>&nbsp;</p></div>";
+}
+
+function vueSalaires(z, o) {
+  $("titreVue").textContent = "Gestion des salaires";
+  if (user.role !== "directeur" && user.role !== "secretaire") { z.innerHTML = "<p>Accès réservé à la direction et au secrétariat.</p>"; return; }
+  var auj = new Date().toISOString().slice(0, 10);
+  var e = Object.assign({ onglet: "liste", mois: auj.slice(0, 7), ag: "" }, o || {});
+  function aller(p) { vueSalaires(z, Object.assign({}, e, p)); }
+  z.innerHTML = '<div class="chips noprint" id="sChips"></div><div id="sCorps"></div>';
+  [["liste", "Liste des salaires"], ["paiement", "Paiement des salaires"], ["avances", "Avances sur salaire"], ["historique", "Historique des paiements"]].forEach(function (t) {
+    $("sChips").appendChild(chip(t[1], e.onglet === t[0], function () { aller({ onglet: t[0] }); }));
+  });
+  var c = $("sCorps");
+  if (e.onglet === "liste") tabListeSal(c, e, aller);
+  else if (e.onglet === "paiement") tabPaiementSal(c, e, aller, z);
+  else if (e.onglet === "avances") tabAvancesSal(c, e, aller);
+  else tabHistoSal(c, e, aller, z);
+}
+
+function ligneTot(label, v) {
+  return "<tr><th>" + label + "</th>" + v.map(function (x) { return '<th class="num">' + fcfa(x) + "</th>"; }).join("") + "<th></th></tr>";
+}
+function tableSituation(ag, mois, sal, pay, dir) {
+  var h = '<div class="tableau"><table><thead><tr><th>Agent</th><th class="num">Salaire</th><th class="num">Prime</th><th class="num">Payé</th><th class="num">Retenue</th><th class="num">Reste</th><th>État</th></tr></thead><tbody>', t = [0, 0, 0, 0, 0];
+  ag.forEach(function (a) {
+    var s = situationSal(a.id, mois, sal, pay);
+    [s.base, s.prime, s.paye, s.retenu, s.reste].forEach(function (v, i) { t[i] += v; });
+    h += "<tr><td>" + esc(a.nom) + '</td><td class="num">' + fcfa(s.base) + '</td><td class="num">' + fcfa(s.prime) + '</td><td class="num">' + fcfa(s.paye) + '</td><td class="num">' + fcfa(s.retenu) +
+      '</td><td class="num"><strong>' + fcfa(s.reste) + "</strong></td><td>" + etatSal(s) + "</td></tr>";
+  });
+  return { html: h + (dir ? ligneTot("TOTAL", t) : "") + "</tbody></table></div>", tot: t };
+}
+
+function tabListeSal(c, e, aller) {
+  var ag = agentsSal().filter(function (a) { return !a.archive; }), sal = salaires(), av = avancesSal(), pay = payesSal(), dir = user.role === "directeur";
+  var ref = e.mois || new Date().toISOString().slice(0, 7), tot = 0, avt = 0, rows = "";
+  ag.forEach(function (a) {
+    var m = salaireAu(a.id, ref, sal), so = soldeAvance(a.id, av, pay); tot += m; avt += so;
+    rows += "<tr><td>" + esc(a.nom) + "</td><td>" + esc(a.fonction) + '</td><td class="num">' + (dir ? '<input type="number" class="sI" data-id="' + esc(a.id) + '" min="0" step="500" value="' + (m || "") + '">' : fcfa(m)) +
+      '</td><td class="num">' + fcfa(so) + "</td></tr>";
+  });
+  var h = '<div class="pf">' + champ("Mois", '<input type="month" id="lMois" value="' + ref + '">') + "</div>" +
+    (dir ? '<div class="stats">' + carte("Agents", ag.length) + carte("Masse salariale du mois", fcfa(tot)) + carte("Avances en cours", fcfa(avt)) + "</div>" : "") +
+    '<div class="tableau"><table class="tpoint"><thead><tr><th>Agent</th><th>Fonction</th><th class="num">Salaire mensuel</th><th class="num">Avance restante</th></tr></thead><tbody>' + rows +
+    (dir ? "<tr><th>TOTAL</th><th></th><th class=\"num\">" + fcfa(tot) + '</th><th class="num">' + fcfa(avt) + "</th></tr>" : "") + "</tbody></table></div>";
+  if (dir) h += '<p class="aide2">Un nouveau salaire s\'applique à partir du mois choisi ci-dessus. Les mois précédents ne changent pas, même en cas d\'augmentation.</p><p><button type="button" class="go" id="sSave">Enregistrer les salaires à partir de ' + moisFr(ref) + '</button></p><p class="res" id="sMsg" role="status"></p>';
+  else h += '<p class="aide2">Les salaires sont fixés par la direction.</p>';
+  var vis = ag.filter(function (a) { return (sal[a.id] || []).length; });
+  if (vis.length) {
+    h += '<details class="rub"><summary>Historique des changements de salaire</summary><div class="tableau"><table><thead><tr><th>Agent</th><th>À partir de</th><th class="num">Salaire</th></tr></thead><tbody>';
+    vis.forEach(function (a) { sal[a.id].forEach(function (x) { h += "<tr><td>" + esc(a.nom) + "</td><td>" + (x.depuis === "0000-00" ? "Début" : moisFr(x.depuis)) + '</td><td class="num">' + fcfa(x.montant) + "</td></tr>"; }); });
+    h += "</tbody></table></div></details>";
+  }
+  c.innerHTML = h;
+  $("lMois").addEventListener("change", function () { if ($("lMois").value) aller({ mois: $("lMois").value }); });
+  if (dir) $("sSave").addEventListener("click", function () {
+    var t = salaires();
+    Array.prototype.forEach.call(c.querySelectorAll(".sI"), function (i) {
+      var id = i.dataset.id, n = parseFloat(i.value) || 0;
+      if (n === salaireAu(id, ref, t)) return;
+      var l = (t[id] || []).filter(function (x) { return x.depuis !== ref; });
+      l.push({ depuis: ref, montant: n });
+      l.sort(function (a, b) { return a.depuis < b.depuis ? -1 : 1; });
+      t[id] = l;
+    });
+    if (ecrire("salairesH", t)) aller({}); else $("sMsg").textContent = "Enregistrement impossible : stockage plein.";
+  });
+}
+
+function tabPaiementSal(c, e, aller, z) {
+  var ag = agentsSal().filter(function (a) { return !a.archive; }), vis = visiblesSal(), auj = new Date().toISOString().slice(0, 10), mois = e.mois || auj.slice(0, 7);
+  var dir = user.role === "directeur";
+  var h = '<form class="pf" id="formPS"><h3>Enregistrer un paiement de salaire</h3>' + champ("Mois concerné", '<input type="month" id="psMois" value="' + mois + '" required>') +
+    champ("Agent", '<select id="psAg"><option value="">Choisir</option>' + ag.map(function (a) { return '<option value="' + esc(a.id) + '">' + esc(a.nom) + "</option>"; }).join("") + "</select>") +
+    '<p class="aide2" id="psInfo"></p>' + champ("Prime du mois (FCFA, facultatif)", '<input type="number" id="psPrime" min="0" step="1" value="0">') +
+    champ("Montant payé (FCFA)", '<input type="number" id="psMont" min="0" step="1">') + champ("Retenue pour remboursement d'avance (FCFA)", '<input type="number" id="psRet" min="0" step="1" value="0">') +
+    champ("Date du paiement", '<input type="date" id="psDate" value="' + auj + '" required>') + champ("Mode de paiement", '<select id="psMode">' + MODES_PAIE.map(function (m) { return "<option>" + m + "</option>"; }).join("") + "</select>") +
+    champ("Observation", '<input id="psObs">') + '<button type="submit" class="go">Enregistrer le paiement</button><p class="res" id="psMsg" role="status"></p></form><h3 class="titreMenu">Situation de ' + moisFr(mois) + "</h3>";
+  c.innerHTML = h + tableSituation(ag, mois, salaires(), payesSal(), dir).html;
+  function maj() {
+    var id = $("psAg").value;
+    if (!id) { $("psInfo").textContent = ""; return; }
+    var s = situationSal(id, $("psMois").value, salaires(), payesSal()), so = soldeAvance(id, avancesSal(), payesSal());
+    $("psInfo").textContent = "Salaire du mois : " + fcfa(s.base) + (s.prime ? " + prime " + fcfa(s.prime) : "") + ". Déjà réglé : " + fcfa(s.paye + s.retenu) + ". Reste à payer : " + fcfa(s.reste) + ". Avance à rembourser : " + fcfa(so) + ".";
+    $("psMont").value = s.reste || "";
+  }
+  $("psAg").addEventListener("change", maj);
+  $("psMois").addEventListener("change", function () { if ($("psMois").value) aller({ mois: $("psMois").value }); });
+  $("formPS").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var id = $("psAg").value, m = $("psMois").value, montant = parseFloat($("psMont").value) || 0, ret = parseFloat($("psRet").value) || 0, prime = parseFloat($("psPrime").value) || 0, msg = $("psMsg");
+    if (!id) { msg.textContent = "Choisissez un agent."; return; }
+    var s = situationSal(id, m, salaires(), payesSal()), so = soldeAvance(id, avancesSal(), payesSal());
+    if (s.base <= 0) { msg.textContent = "Définissez d'abord le salaire de cet agent dans « Liste des salaires »."; return; }
+    if (montant + ret + prime <= 0) { msg.textContent = "Saisissez un montant ou une prime."; return; }
+    if (ret > so) { msg.textContent = "La retenue dépasse l'avance restante (" + fcfa(so) + ")."; return; }
+    if (montant + ret > s.reste + prime) { msg.textContent = "Le total dépasse le reste à payer (" + fcfa(s.reste + prime) + ")."; return; }
+    var rec = { id: Date.now(), agent: id, mois: m, montant: montant, retenue: ret, prime: prime, date: $("psDate").value, mode: $("psMode").value, note: $("psObs").value.trim(), auteur: user.nom };
+    var l = payesSal(); l.unshift(rec);
+    if (!ecrire("paiementsSalaires", l)) { msg.textContent = "Enregistrement impossible : stockage plein."; return; }
+    ecranImprimable(z, "Reçu de paiement", function () { aller({ mois: m }); }, htmlRecu(rec, vis[id], situationSal(id, m, salaires(), l)));
+  });
+}
+
+function tabAvancesSal(c, e, aller) {
+  var ag = agentsSal().filter(function (a) { return !a.archive; }), vis = visiblesSal(), auj = new Date().toISOString().slice(0, 10), dir = user.role === "directeur";
+  var av = avancesSal().filter(function (x) { return vis[x.agent]; }), pay = payesSal().filter(function (x) { return vis[x.agent]; });
+  var h = '<form class="pf" id="formAv"><h3>Enregistrer une avance sur salaire</h3>' +
+    champ("Agent", '<select id="avAg"><option value="">Choisir</option>' + ag.map(function (a) { return '<option value="' + esc(a.id) + '">' + esc(a.nom) + "</option>"; }).join("") + "</select>") +
+    champ("Montant avancé (FCFA)", '<input type="number" id="avMont" min="1" step="1" required>') + champ("Date", '<input type="date" id="avDate" value="' + auj + '" required>') +
+    champ("Motif", '<input id="avMotif">') + '<button type="submit" class="go">Enregistrer l\'avance</button><p class="res" id="avMsg" role="status"></p></form>';
+  var rows = "", t = [0, 0, 0];
+  ag.forEach(function (a) {
+    var tot = 0, ret = 0;
+    av.forEach(function (x) { if (x.agent === a.id) tot += x.montant; });
+    pay.forEach(function (x) { if (x.agent === a.id) ret += x.retenue || 0; });
+    if (tot || ret) { t[0] += tot; t[1] += ret; t[2] += tot - ret; rows += "<tr><td>" + esc(a.nom) + '</td><td class="num">' + fcfa(tot) + '</td><td class="num">' + fcfa(ret) + '</td><td class="num"><strong>' + fcfa(tot - ret) + "</strong></td></tr>"; }
+  });
+  h += '<h3 class="titreMenu">Avances par agent</h3>' + (rows ? '<div class="tableau"><table><thead><tr><th>Agent</th><th class="num">Total avancé</th><th class="num">Déjà retenu</th><th class="num">Solde</th></tr></thead><tbody>' + rows +
+    (dir ? "<tr><th>TOTAL</th>" + t.map(function (x) { return '<th class="num">' + fcfa(x) + "</th>"; }).join("") + "</tr>" : "") + "</tbody></table></div>" : "<p>Aucune avance enregistrée.</p>");
+  if (av.length) {
+    h += '<h3 class="titreMenu">Avances enregistrées</h3><div class="tableau"><table><thead><tr><th>Date</th><th>Agent</th><th class="num">Montant</th><th>Motif</th><th></th></tr></thead><tbody>';
+    av.slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }).forEach(function (x) {
+      h += "<tr><td>" + dateFr(x.date) + "</td><td>" + esc(vis[x.agent].nom) + '</td><td class="num">' + fcfa(x.montant) + "</td><td>" + esc(x.motif || "") + "</td><td>" + (dir ? '<button type="button" class="suppr" data-del="' + x.id + '">Supprimer</button>' : "") + "</td></tr>";
+    });
+    h += "</tbody></table></div>";
+  }
+  c.innerHTML = h;
+  $("formAv").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var id = $("avAg").value, m = parseFloat($("avMont").value) || 0;
+    if (!id) { $("avMsg").textContent = "Choisissez un agent."; return; }
+    if (m <= 0) { $("avMsg").textContent = "Saisissez un montant valide."; return; }
+    var l = avancesSal(); l.unshift({ id: Date.now(), agent: id, montant: m, date: $("avDate").value, motif: $("avMotif").value.trim(), auteur: user.nom });
+    if (ecrire("avancesSalaires", l)) aller({}); else $("avMsg").textContent = "Enregistrement impossible : stockage plein.";
+  });
+  Array.prototype.forEach.call(c.querySelectorAll("[data-del]"), function (b) {
+    deuxClics(b, function () { ecrire("avancesSalaires", avancesSal().filter(function (x) { return String(x.id) !== b.dataset.del; })); aller({}); });
+  });
+}
+
+function tabHistoSal(c, e, aller, z) {
+  var vis = visiblesSal(), sal = salaires(), allPay = payesSal().filter(function (x) { return vis[x.agent]; }), dir = user.role === "directeur";
+  var l = allPay.filter(function (x) { return (!e.mois || x.mois === e.mois) && (!e.ag || x.agent === e.ag); }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  var tp = 0, tr = 0, tpr = 0, h = '<div class="pf noprint">' + champ("Mois (vide : tous les mois)", '<input type="month" id="hMois" value="' + (e.mois || "") + '">') +
+    champ("Agent", '<select id="hAg"><option value="">Tous les agents</option>' + agentsSal().map(function (a) { return '<option value="' + esc(a.id) + '"' + (e.ag === a.id ? " selected" : "") + ">" + esc(a.nom) + "</option>"; }).join("") + "</select>") + "</div>";
+  l.forEach(function (x) { tp += x.montant; tr += x.retenue || 0; tpr += x.prime || 0; });
+  var sit = null;
+  if (e.mois) sit = tableSituation(agentsSal().filter(function (a) { return (!a.archive || allPay.some(function (x) { return x.agent === a.id && x.mois === e.mois; })) && (!e.ag || a.id === e.ag); }), e.mois, sal, allPay, dir);
+  if (dir) h += '<div class="stats">' + carte("Total payé", fcfa(tp)) + carte("Total retenu (avances)", fcfa(tr)) + carte("Primes", fcfa(tpr)) + (sit ? carte("Reste à payer", fcfa(sit.tot[4])) : "") + "</div>";
+  h += '<p class="noprint"><button type="button" class="quitter" id="hImp">Imprimer</button></p>';
+  if (sit) h += '<h3 class="titreMenu">Salaires payés et restants : ' + moisFr(e.mois) + "</h3>" + sit.html;
+  h += '<h3 class="titreMenu">Paiements enregistrés</h3>';
+  if (!l.length) h += "<p>Aucun paiement enregistré.</p>";
+  else {
+    h += '<div class="tableau"><table><thead><tr><th>Date</th><th>Mois</th><th>Agent</th><th class="num">Payé</th><th class="num">Prime</th><th class="num">Retenue</th><th>Mode</th><th class="noprint"></th></tr></thead><tbody>';
+    l.forEach(function (x) {
+      h += "<tr><td>" + dateFr(x.date) + "</td><td>" + moisFr(x.mois) + "</td><td>" + esc(vis[x.agent].nom) + '</td><td class="num">' + fcfa(x.montant) + '</td><td class="num">' + fcfa(x.prime || 0) + '</td><td class="num">' + fcfa(x.retenue || 0) + "</td><td>" + esc(x.mode) +
+        '</td><td class="noprint"><button type="button" class="go" data-r="' + x.id + '">Reçu</button> ' + (dir ? '<button type="button" class="suppr" data-del="' + x.id + '">Annuler</button>' : "") + "</td></tr>";
+    });
+    h += "</tbody></table></div>";
+  }
+  c.innerHTML = h;
+  $("hMois").addEventListener("change", function () { aller({ mois: $("hMois").value }); });
+  $("hAg").addEventListener("change", function () { aller({ ag: $("hAg").value }); });
+  $("hImp").addEventListener("click", function () { try { window.print(); } catch (er) {} });
+  Array.prototype.forEach.call(c.querySelectorAll("[data-r]"), function (b) {
+    b.addEventListener("click", function () {
+      var x = allPay.filter(function (y) { return String(y.id) === b.dataset.r; })[0];
+      ecranImprimable(z, "Reçu de paiement", function () { aller({}); }, htmlRecu(x, vis[x.agent], situationSal(x.agent, x.mois, sal, allPay)));
+    });
+  });
+  Array.prototype.forEach.call(c.querySelectorAll("[data-del]"), function (b) {
+    deuxClics(b, function () { ecrire("paiementsSalaires", payesSal().filter(function (x) { return String(x.id) !== b.dataset.del; })); aller({}); });
+  });
+}
+
+// Espace personnel : salaire, prime et avances de l'agent connecté
+function htmlMonSalaire(aid) {
+  var mois = new Date().toISOString().slice(0, 7), sal = salaires(), pay = payesSal(), av = avancesSal();
+  var s = situationSal(aid, mois, sal, pay), so = soldeAvance(aid, av, pay), tAv = 0, ret = 0;
+  av.forEach(function (x) { if (x.agent === aid) tAv += x.montant; });
+  pay.forEach(function (x) { if (x.agent === aid) ret += x.retenue || 0; });
+  var mes = pay.filter(function (x) { return x.agent === aid; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; }).slice(0, 6);
+  var h = '<p class="aide2">Mois de ' + moisFr(mois) + '</p><div class="stats">' + carte("Salaire", fcfa(s.base)) + (s.prime ? carte("Prime", fcfa(s.prime)) : "") + carte("Déjà reçu", fcfa(s.paye)) + carte("Reste à recevoir", fcfa(s.reste)) + "</div>" +
+    '<div class="stats">' + carte("Total emprunté", fcfa(tAv)) + carte("Déjà remboursé", fcfa(ret)) + carte("Reste à rembourser", fcfa(so)) + "</div>";
+  if (mes.length) {
+    h += '<div class="tableau"><table><thead><tr><th>Date</th><th>Mois</th><th class="num">Payé</th><th class="num">Retenue</th><th>Mode</th></tr></thead><tbody>';
+    mes.forEach(function (x) { h += "<tr><td>" + dateFr(x.date) + "</td><td>" + moisFr(x.mois) + '</td><td class="num">' + fcfa(x.montant) + '</td><td class="num">' + fcfa(x.retenue || 0) + "</td><td>" + esc(x.mode) + "</td></tr>"; });
+    h += "</tbody></table></div>";
+  }
+  return h;
+}
+
+// ---------- Tarifs de l'école (modifiables par le directeur)
+var TARIFS_DEFAUT = {
+  inscription: { N: 2000, A: 1000 },
+  tranches: { mat: [20000, 10000, 5000], prim: [25000, 10000, 5000], cm: [30000, 10000, 5000] },
+  hebdo: 1000, test: 1000, dossier: 10000, lacoste: 2500, sport: 1500, fete: 2000, td: 150
+};
+var RUBRIQUES = [["scolarite", "Frais de scolarité"], ["inscription", "Droit d'inscription"], ["test", "Test obligatoire (nouveaux)"], ["dossier", "Frais de dossier (CM2)"],
+  ["lacoste", "Lacoste"], ["sport", "Tenue de sport"], ["fete", "Fête des enfants (Noël)"], ["td", "TD"], ["autre", "Autre"]];
+var PIECES = [["acte", "Photocopie simple de l'acte de naissance"], ["photo", "Photo d'identité"], ["livret", "Livret de notes de l'année précédente"], ["certificat", "Certificat de scolarité"]];
+
+function tarifs() { return lire("tarifs", null) || TARIFS_DEFAUT; }
+function somme(a) { return a.reduce(function (t, x) { return t + x; }, 0); }
+function categorie(cl) { return cl === "cm1" || cl === "cm2" ? "cm" : "prim"; }
+function trancheDe(cl) { return tarifs().tranches[categorie(cl)]; }
+function libRubrique(r) { var x = RUBRIQUES.filter(function (y) { return y[0] === (r || "scolarite"); })[0]; return x ? x[1] : "Frais de scolarité"; }
+function ficheEleve(nom) { return lire("fiches", {})[nom] || FICHES_DEFAUT[nom] || {}; }
+
+// Ce que doit l'élève (scolarité, inscription, test des nouveaux, dossier CM2) et ce qu'il a payé
+function bilanEleve(nom, cl, f, pays) {
+  var t = tarifs(), tr = trancheDe(cl), paid = {};
+  pays.forEach(function (x) { if (x.eleve === nom) { var r = x.rubrique || "scolarite"; paid[r] = (paid[r] || 0) + x.montant; } });
+  var due = { scolarite: somme(tr) };
+  if (f.nouveau === "N" || f.nouveau === "A") due.inscription = t.inscription[f.nouveau];
+  if (f.nouveau === "N") due.test = t.test;
+  if (cl === "cm2") due.dossier = t.dossier;
+  var reste = 0, paye = 0;
+  Object.keys(due).forEach(function (k) { var p = paid[k] || 0; paye += Math.min(p, due[k]); reste += Math.max(0, due[k] - p); });
+  var ps = paid.scolarite || 0, cum = 0, sug = 0;
+  var marks = tr.map(function (m, i) { cum += m; if (!sug && ps < cum && f.option !== "2") sug = cum - ps; return "T" + (i + 1) + (ps >= cum ? " ✓" : " ✗"); });
+  if (f.option === "2") { marks = [marks[0], "Option 2"]; sug = ps >= tr[0] ? Math.min(t.hebdo, Math.max(0, due.scolarite - ps)) : tr[0] - ps; }
+  return { paye: paye, reste: reste, tr: marks.join(" "), due: due, paid: paid, sug: sug };
+}
+function resteEcole() {
+  var fi = lire("fiches", {}), pays = lire("paiements", []), r = 0;
+  tousEleves().forEach(function (e) { r += bilanEleve(e.nom, e.cl, fi[e.nom] || FICHES_DEFAUT[e.nom] || {}, pays).reste; });
+  return r;
+}
+function cellPaie(n, cl, f, pays) {
+  var b = bilanEleve(n, cl, f, pays);
+  return '<td class="num">' + fcfa(b.paye) + '</td><td class="num"><strong>' + fcfa(b.reste) + "</strong><br><small>" + b.tr + "</small></td>";
+}
+function dossierCell(f) {
+  var pc = f.pieces || {}, k = PIECES.filter(function (x) { return pc[x[0]]; }).length;
+  return (f.nouveau === "N" ? "Nouveau<br><small>" + k + " / 4 pièces</small>" : f.nouveau === "A" ? "Ancien" : "–") + (f.option === "2" ? "<br><small>Option 2</small>" : "");
+}
+function champsScolarite(p, f) {
+  f = f || {};
+  var pc = f.pieces || {};
+  return champ("Nouveau ou ancien", '<select id="' + p + 'Nouv"><option value="">Non précisé</option><option value="N"' + (f.nouveau === "N" ? " selected" : "") + '>Nouveau</option><option value="A"' + (f.nouveau === "A" ? " selected" : "") + ">Ancien</option></select>") +
+    champ("Option de paiement", '<select id="' + p + 'Opt"><option value="1">Option 1 (trois tranches)</option><option value="2"' + (f.option === "2" ? " selected" : "") + ">Option 2 (1re tranche puis " + fcfa(tarifs().hebdo) + " par semaine)</option></select>") +
+    '<p class="aide2">Pièces à fournir (nouveaux élèves)</p>' + PIECES.map(function (x, i) { return '<label class="ligne"><input type="checkbox" id="' + p + "P" + i + '"' + (pc[x[0]] ? " checked" : "") + "> " + x[1] + "</label>"; }).join("");
+}
+function lireScolarite(p) {
+  var pc = {};
+  PIECES.forEach(function (x, i) { pc[x[0]] = $(p + "P" + i).checked; });
+  return { nouveau: $(p + "Nouv").value, option: $(p + "Opt").value, pieces: pc };
+}
+function htmlTranches(nom, cl, bl) {
+  var t = tarifs(), tr = trancheDe(cl), f = ficheEleve(nom), ps = bl.paid.scolarite || 0, cum = 0;
+  var an = parseInt(String(lire("bulletinParam", {}).annee || "2026").slice(0, 4), 10) || 2026, ech = ["Au début", "Décembre " + an, "Janvier " + (an + 1)], n = f.option === "2" ? 1 : 3;
+  var h = '<h3 class="titreMenu">Frais de scolarité</h3><div class="tableau"><table><thead><tr><th>Tranche</th><th>Échéance</th><th class="num">Montant</th><th>État</th></tr></thead><tbody>';
+  for (var i = 0; i < n; i++) {
+    cum += tr[i];
+    h += "<tr><td>" + (i + 1) + (i === 0 ? "re" : "e") + " tranche</td><td>" + ech[i] + '</td><td class="num">' + fcfa(tr[i]) + "</td><td>" + (ps >= cum ? "Soldée" : '<span class="nb bas">À payer</span>') + "</td></tr>";
+  }
+  h += "</tbody></table></div>";
+  if (f.option === "2") h += "<p>Option 2 : ensuite " + fcfa(t.hebdo) + " par semaine et par enfant pour le reste (" + fcfa(Math.max(0, somme(tr) - Math.max(ps, tr[0]))) + " à régler après la 1re tranche).</p>";
+  return h;
+}
+
+function vueTarifs(z) {
+  $("titreVue").textContent = "Tarifs et conditions";
+  var t = tarifs(), dir = user.role === "directeur";
+  var h = '<p class="aide2">Situé à Adjati, en face de la boutique FAN-MILK, non loin des rails.</p><h3 class="titreMenu">Droit d\'inscription</h3><p>Nouveaux : <strong>' + fcfa(t.inscription.N) +
+    "</strong><br>Anciens : <strong>" + fcfa(t.inscription.A) + '</strong></p><h3 class="titreMenu">Frais de scolarité : Option 1</h3><div class="tableau"><table><thead><tr><th>Niveau</th><th class="num">Total</th><th class="num">1re tranche (au début)</th><th class="num">2e tranche (décembre)</th><th class="num">3e tranche (janvier)</th></tr></thead><tbody>';
+  [["mat", "Maternelle"], ["prim", "CI au CE2"], ["cm", "CM1 - CM2"]].forEach(function (k) {
+    var tr = t.tranches[k[0]];
+    h += "<tr><td><strong>" + k[1] + '</strong></td><td class="num"><strong>' + fcfa(somme(tr)) + "</strong></td>" + tr.map(function (x) { return '<td class="num">' + fcfa(x) + "</td>"; }).join("") + "</tr>";
+  });
+  h += '</tbody></table></div><h3 class="titreMenu">Option 2</h3><p>1re tranche obligatoire à la rentrée, puis ' + fcfa(t.hebdo) + ' par semaine et par enfant pour le reste.</p><h3 class="titreMenu">Uniformes et autres frais</h3><div class="tableau"><table><tbody>' +
+    [["Lacoste (en vente dans l'établissement)", t.lacoste], ["Tenue de sport", t.sport], ["Fête des enfants (Noël)", t.fete], ["TD", t.td], ["Test obligatoire pour les nouveaux", t.test]].map(function (x) { return "<tr><td>" + x[0] + '</td><td class="num"><strong>' + fcfa(x[1]) + "</strong></td></tr>"; }).join("") +
+    '</tbody></table></div><h3 class="titreMenu">Élèves de CM2</h3><p>' + fcfa(t.dossier) + " : frais de dossier, examens blancs internes et externes, carte d'identité scolaire et un document obligatoire.</p>" +
+    '<h3 class="titreMenu">Pièces à fournir (nouveaux élèves)</h3><ul>' + PIECES.map(function (x) { return "<li>" + x[1] + "</li>"; }).join("") + "</ul>";
+  if (dir) {
+    function num(id, lab, v) { return champ(lab, '<input type="number" id="' + id + '" min="0" step="50" value="' + v + '">'); }
+    h += '<details class="rub"><summary>Modifier les tarifs</summary><form class="pf" id="formTarifs">' + num("tIN", "Inscription : nouveaux", t.inscription.N) + num("tIA", "Inscription : anciens", t.inscription.A);
+    [["tm", "Maternelle", "mat"], ["tp", "CI au CE2", "prim"], ["tc", "CM1 - CM2", "cm"]].forEach(function (k) {
+      [0, 1, 2].forEach(function (i) { h += num(k[0] + i, k[1] + " : " + (i + 1) + (i === 0 ? "re" : "e") + " tranche", t.tranches[k[2]][i]); });
+    });
+    h += num("tH", "Option 2 : par semaine", t.hebdo) + num("tT", "Test des nouveaux", t.test) + num("tD", "Frais de dossier CM2", t.dossier) + num("tL", "Lacoste", t.lacoste) + num("tS", "Tenue de sport", t.sport) +
+      num("tF", "Fête des enfants", t.fete) + num("tTD", "TD", t.td) + '<p class="aide2">Les nouveaux tarifs s\'appliquent à tous les élèves, y compris pour les soldes déjà calculés.</p><button type="submit" class="go">Enregistrer les tarifs</button></form></details>';
+  }
+  z.innerHTML = h;
+  if (dir) $("formTarifs").addEventListener("submit", function (e) {
+    e.preventDefault();
+    function g(id) { return parseFloat($(id).value) || 0; }
+    ecrire("tarifs", { inscription: { N: g("tIN"), A: g("tIA") }, tranches: { mat: [g("tm0"), g("tm1"), g("tm2")], prim: [g("tp0"), g("tp1"), g("tp2")], cm: [g("tc0"), g("tc1"), g("tc2")] },
+      hebdo: g("tH"), test: g("tT"), dossier: g("tD"), lacoste: g("tL"), sport: g("tS"), fete: g("tF"), td: g("tTD") });
+    vueTarifs(z);
+  });
+}
+
+function ouvrirVue(nom, cl) {
+  var z = $("contenuVue");
+  if (nom === "classes") vueClasses(z, cl); else if (nom === "notif") vueNotif(z); else if (nom === "pub") vuePub(z); else if (nom === "presence") vuePresence(z); else if (nom === "bulletin") vueBulletin(z); else if (nom === "agents") vueAgents(z); else if (nom === "ppres") vuePersPresence(z); else if (nom === "disc") vueDiscipline(z, { type: cl }); else if (nom === "sal") vueSalaires(z, { onglet: cl }); else if (nom === "tarifs") vueTarifs(z); else vueImport(z);
+  montrer("vue");
+}
+
+$("btnRetour2").addEventListener("click", function () { montrer("tableau"); });
+
+var MENU = [
+  { t: "Gestion des élèves", s: ["Classes", "Importation des élèves", "Présence", "Évaluations", "Bulletin de notes", "Passage/Redoublement"],
+    r: { directeur: "*", secretaire: ["Classes", "Importation des élèves"], enseignant: ["Classes", "Présence", "Évaluations", "Bulletin de notes"], parent: ["Bulletin de notes"] } },
+  { t: "Gestion du personnel", s: ["Liste des agents", "Dossiers du personnel", "Présences et absences", "Emploi du temps", "Cahier journal", "Suivi disciplinaire"],
+    r: { directeur: "*", secretaire: ["Présences et absences"], enseignant: ["Emploi du temps", "Cahier journal"] } },
+  { t: "Paiement de la scolarité", s: ["Encaisser un paiement", "Effectuer un paiement", "Suivi", "Réclamation", "Tarifs et conditions"],
+    r: { directeur: ["Suivi", "Tarifs et conditions"], secretaire: ["Encaisser un paiement", "Suivi", "Réclamation", "Tarifs et conditions"], parent: ["Effectuer un paiement", "Suivi", "Réclamation", "Tarifs et conditions"] } },
+  { t: "Gestion des salaires", s: ["Liste des salaires", "Paiement des salaires", "Avances sur salaire", "Historique des paiements"], r: { directeur: "*", secretaire: "*" } },
+  { t: "Communication", s: ["Notification", "Publication"], r: { directeur: "*", secretaire: "*", enseignant: "*", agent: "*", parent: "*" } }
+];
+
+var GROUPES = { "Suivi disciplinaire": ["Retards répétés", "Absences injustifiées", "Non-respect des horaires", "Non-exécution des tâches pédagogiques", "Non-respect du règlement intérieur", "Rapports d’incidents", "Observations et mesures prises"] };
+
+function menuHtml() {
+  var h = '<h2 class="titreMenu">Rubriques</h2>';
+  MENU.forEach(function (m) {
+    var a = m.r[user.role], l = a ? (a === "*" ? m.s : a) : [];
+    if (!l.length) return;
+    h += '<details class="rub"><summary>' + m.t + "</summary>";
+    l.forEach(function (s) {
+      if (GROUPES[s]) h += '<details class="rub"><summary>' + s + "</summary>" + GROUPES[s].map(function (g) { return '<button type="button" class="sr" data-sr="' + g + '">' + g + "</button>"; }).join("") + "</details>";
+      else h += '<button type="button" class="sr" data-sr="' + s + '">' + s + "</button>";
+    });
+    h += "</details>";
+  });
+  return h + '<p id="infoMenu" role="status"></p>';
+}
+
+function ouvrirTableau() {
+  dessinerTableau();
+  var d = document.createElement("div");
+  d.innerHTML = menuHtml();
+  $("contenuTab").appendChild(d);
+  Array.prototype.forEach.call(d.querySelectorAll("[data-sr]"), function (b) {
+    b.addEventListener("click", function () {
+      var s = b.dataset.sr;
+      if (s === "Évaluations") { allerSaisie(user.classe); return; }
+      if (s === "Classes") { ouvrirVue("classes"); return; }
+      if (s === "Importation des élèves") { ouvrirVue("import"); return; }
+      if (s === "Dossiers du personnel") { ouvrirVue("agents"); return; }
+      if (s === "Tarifs et conditions") { ouvrirVue("tarifs"); return; }
+      if (SAL_TABS[s]) { ouvrirVue("sal", SAL_TABS[s]); return; }
+      if (DISC_TYPES[s]) { ouvrirVue("disc", DISC_TYPES[s]); return; }
+      if (s === "Présences et absences") { ouvrirVue("ppres"); return; }
+      if (s === "Liste des agents") { ouvrirVue("agents"); return; }
+      if (s === "Bulletin de notes") { ouvrirVue("bulletin"); return; }
+      if (s === "Présence") { ouvrirVue("presence"); return; }
+      if (s === "Notification") { ouvrirVue("notif"); return; }
+      if (s === "Publication") { ouvrirVue("pub"); return; }
+      $("infoMenu").textContent = "« " + s + " » sera disponible prochainement.";
+    });
+  });
+}
+
+$("btnRetour").addEventListener("click", function () { montrer("tableau"); });
+
+function ouvrirSession(c) {
+  user = c;
+  $("connexion").classList.add("cache");
+  $("qui").textContent = c.nom + " (" + (c.etiquette || c.role) + ")";
+  $("qui2").textContent = c.nom + " (" + (c.etiquette || c.role) + ")";
+  if (c.classe) { $("classe").value = c.classe; $("classe").disabled = true; }
+  else { $("classe").disabled = false; }
+  var parent = c.role === "parent";
+  $("zoneAjout").classList.toggle("cache", parent);
+  $("btnEnreg").classList.toggle("cache", parent);
+  afficher("", true);
+  dessiner();
+  montrer("tableau");
+}
+
+$("formConnexion").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var id = $("ident").value.trim().toLowerCase(), mdp = $("mdp").value;
+  var c = tousComptes().filter(function (x) { return x.id === id && x.mdp === mdp; })[0];
+  if (!c) { $("erreurConn").textContent = "Identifiant ou mot de passe incorrect."; return; }
+  $("erreurConn").textContent = "";
+  $("mdp").value = "";
+  try { sessionStorage.setItem("session", c.id); } catch (err) {}
+  try { ouvrirSession(c); }
+  catch (err) { $("erreurConn").textContent = "Erreur : " + (err && err.message ? err.message : err); }
+});
+
+function quitter() {
+  try { sessionStorage.removeItem("session"); } catch (err) {}
+  location.reload();
+}
+$("btnQuitter").addEventListener("click", quitter);
+$("btnQuitter2").addEventListener("click", quitter);
+
+(function () {
+  var id = null;
+  try { id = sessionStorage.getItem("session"); } catch (err) {}
+  var c = tousComptes().filter(function (x) { return x.id === id; })[0];
+  if (c) { try { ouvrirSession(c); } catch (err) { $("erreurConn").textContent = "Erreur : " + (err && err.message ? err.message : err); } }
+})();
+</script>
+</body>
+</html>
